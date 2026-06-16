@@ -1,0 +1,266 @@
+/* ============================================
+   Project Manage – Dark Theme
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0B0F19;
+    color: #F8FAFC;
+    min-height: 100vh;
+    padding: 48px;
+}
+
+a {
+    color: #A855F7;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: #C084FC;
+}
+
+.pm-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.pm-header {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.pm-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #F8FAFC;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pm-header h1 .accent {
+    color: #A855F7;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background-color: #A855F7;
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background-color: #C084FC;
+}
+
+.btn-primary:active {
+    background-color: #9333EA;
+}
+
+.btn-primary:disabled {
+    background-color: #334155;
+    color: #64748B;
+    cursor: not-allowed;
+}
+
+.btn-back {
+    background-color: #1E293B;
+    color: #94A3B8;
+    border: 1px solid #334155;
+}
+
+.btn-back:hover {
+    background-color: #334155;
+    color: #F8FAFC;
+}
+
+/* ---------- Alerts ---------- */
+.pm-alert {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pm-alert-error {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.pm-alert-success {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: #4ADE80;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* ---------- Panels / Cards ---------- */
+.pm-card {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+}
+
+.pm-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #F8FAFC;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ---------- Forms ---------- */
+.form-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-select {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px;
+    background-color: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #F8FAFC;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-select:focus {
+    border-color: #A855F7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+/* ---------- Member Cards / Grid ---------- */
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.member-item {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.member-item:hover {
+    border-color: rgba(168, 85, 247, 0.25);
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.member-name {
+    font-weight: 600;
+    color: #F8FAFC;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.member-email {
+    font-size: 13px;
+    color: #94A3B8;
+}
+
+/* Roles Badges */
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-owner {
+    background-color: rgba(168, 85, 247, 0.15);
+    color: #C084FC;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.role-member {
+    background-color: rgba(99, 102, 241, 0.15);
+    color: #818CF8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 12px;
+    }
+
+    .pm-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .pm-header-buttons {
+        width: 100%;
+    }
+
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,140 @@
+body {
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    color: #333;
+    font-size: 2em;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.welcome {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #666;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tasks-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tasks-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+}
+
+table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    color: #666;
+}
+
+table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.priority-1 { color: #28a745; font-weight: 600; }
+.priority-2 { color: #20c997; font-weight: 600; }
+.priority-3 { color: #ffc107; font-weight: 600; }
+.priority-4 { color: #fd7e14; font-weight: 600; }
+.priority-5 { color: #dc3545; font-weight: 600; }
+
+.status-todo { background-color: #e7f3ff; color: #0066cc; padding: 4px 8px; border-radius: 3px; }
+.status-in-progress { background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 3px; }
+.status-done { background-color: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 3px; }
+
+.no-tasks {
+    text-align: center;
+    color: #999;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+.login-prompt {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.login-prompt h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.login-prompt p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 1.5em;
+    }
+
+    .header-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    table th, table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .tasks-section {
+        padding: 15px;
+    }
+}
