@@ -1,0 +1,26 @@
+# PHP
+/vendor/
+/.env
+composer.lock
+
+# Node (optional frontend tooling)
+node_modules/
+/dist/
+
+# Logs and runtime
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Tests
+coverage/
+
+# Misc
+/.cache

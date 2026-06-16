@@ -1,0 +1,661 @@
+/* ============================================
+   Project View – Dark Theme
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0B0F19;
+    color: #F8FAFC;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+a {
+    color: #A855F7;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #C084FC;
+}
+
+/* ---------- Layout ---------- */
+.pv-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.pv-header {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.pv-header-left h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #F8FAFC;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pv-header-left h1 .accent {
+    color: #A855F7;
+}
+
+.pv-header-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background-color: #A855F7;
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background-color: #C084FC;
+}
+
+.btn-primary:active {
+    background-color: #9333EA;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #A855F7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(168, 85, 247, 0.1);
+    border-color: #A855F7;
+    color: #C084FC;
+}
+
+.btn-outline-muted {
+    background-color: transparent;
+    color: #94A3B8;
+    border: 1px solid #334155;
+}
+
+.btn-outline-muted:hover {
+    border-color: #64748B;
+    color: #F8FAFC;
+}
+
+.btn-back {
+    background-color: #1E293B;
+    color: #94A3B8;
+    border: 1px solid #334155;
+}
+
+.btn-back:hover {
+    background-color: #334155;
+    color: #F8FAFC;
+}
+
+/* ---------- Description Card ---------- */
+.pv-description {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-left: 4px solid #6366F1;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #94A3B8;
+    line-height: 1.6;
+}
+
+.pv-description strong {
+    color: #F8FAFC;
+    font-weight: 600;
+}
+
+/* ---------- Project Stats ---------- */
+.pv-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.pv-stat-card {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+}
+
+.pv-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #A855F7;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.pv-stat-label {
+    font-size: 12px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ---------- Task Section ---------- */
+.pv-tasks-section {
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    padding: 24px 28px;
+}
+
+.pv-tasks-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pv-tasks-toolbar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #F8FAFC;
+}
+
+.pv-view-toggle {
+    display: flex;
+    background-color: #1E293B;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #334155;
+}
+
+.pv-view-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #94A3B8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.pv-view-btn:hover {
+    color: #F8FAFC;
+}
+
+.pv-view-btn.active {
+    background-color: #A855F7;
+    color: #FFFFFF;
+}
+
+/* ---------- Grid View ---------- */
+.pv-tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+}
+
+.pv-task-card {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+}
+
+.pv-task-card:hover {
+    border-color: rgba(168, 85, 247, 0.35);
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.08);
+    transform: translateY(-1px);
+}
+
+.pv-task-card.completed {
+    opacity: 0.55;
+}
+
+.pv-task-card.completed .pv-task-title {
+    text-decoration: line-through;
+    color: #64748B;
+}
+
+.pv-task-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.pv-task-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #F8FAFC;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.pv-task-desc {
+    font-size: 13px;
+    color: #94A3B8;
+    line-height: 1.5;
+    padding-left: 38px;
+}
+
+.pv-task-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-left: 38px;
+}
+
+/* ---------- List View ---------- */
+.pv-tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pv-task-row {
+    background-color: #1E293B;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto auto;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.pv-task-row:hover {
+    background-color: #253046;
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+.pv-task-row.completed {
+    opacity: 0.55;
+}
+
+.pv-task-row.completed .pv-task-title {
+    text-decoration: line-through;
+    color: #64748B;
+}
+
+.pv-task-row .pv-task-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #F8FAFC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pv-task-row .pv-task-meta-cell {
+    font-size: 12px;
+    color: #94A3B8;
+    white-space: nowrap;
+}
+
+/* ---------- Circle Checkbox ---------- */
+.pv-circle-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #475569;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.pv-circle-check:hover {
+    border-color: #A855F7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+.pv-circle-check.checked {
+    background-color: #A855F7;
+    border-color: #A855F7;
+}
+
+.pv-circle-check.checked::after {
+    content: '';
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid #FFFFFF;
+    border-bottom: 2px solid #FFFFFF;
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 6px;
+}
+
+.pv-circle-check.disabled {
+    border-color: #334155;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ---------- Status Badge ---------- */
+.pv-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.pv-badge-completed {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #4ADE80;
+}
+
+.pv-badge-todo {
+    background-color: rgba(99, 102, 241, 0.15);
+    color: #818CF8;
+}
+
+.pv-badge-pending {
+    background-color: rgba(251, 191, 36, 0.15);
+    color: #FBBF24;
+}
+
+/* ---------- Priority Badge ---------- */
+.pv-priority {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.pv-priority-high {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+}
+
+.pv-priority-medium {
+    background-color: rgba(251, 191, 36, 0.15);
+    color: #FBBF24;
+}
+
+.pv-priority-low {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #4ADE80;
+}
+
+/* ---------- Pending Action Button ---------- */
+.pv-btn-activate {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: #6366F1;
+    color: white;
+    border: 1px solid #A855F7;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.pv-btn-activate:hover {
+    background-color: rgba(251, 191, 36, 0.25);
+    border-color: #FBBF24;
+}
+
+/* ---------- No Tasks ---------- */
+.pv-no-tasks {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748B;
+}
+
+.pv-no-tasks-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+
+.pv-no-tasks p {
+    font-size: 15px;
+    margin-bottom: 20px;
+    color: #94A3B8;
+}
+
+/* ---------- Due Date ---------- */
+.pv-due-date {
+    font-size: 12px;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pv-due-date.overdue {
+    color: #F87171;
+}
+
+/* ---------- Creator Name ---------- */
+.pv-creator {
+    font-size: 12px;
+    color: #64748B;
+}
+
+/* ---------- Toast Notification ---------- */
+.pv-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 10px;
+    padding: 14px 22px;
+    color: #F8FAFC;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pv-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.pv-toast.success {
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.pv-toast.error {
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ---------- Hidden ---------- */
+.hidden {
+    display: none !important;
+}
+
+/* ---------- Success Message ---------- */
+.pv-alert {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pv-alert-success {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: #4ADE80;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+
+    .pv-header {
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .pv-header-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pv-header-left h1 {
+        font-size: 18px;
+    }
+
+    .pv-tasks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pv-task-row {
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+    }
+
+    .pv-task-row .pv-task-meta-cell {
+        display: none;
+    }
+
+    .pv-tasks-section {
+        padding: 16px;
+    }
+
+    .pv-tasks-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pv-task-card,
+.pv-task-row {
+    animation: fadeIn 0.35s ease both;
+}
+
+.pv-task-card:nth-child(2),
+.pv-task-row:nth-child(2) {
+    animation-delay: 0.04s;
+}
+
+.pv-task-card:nth-child(3),
+.pv-task-row:nth-child(3) {
+    animation-delay: 0.08s;
+}
+
+.pv-task-card:nth-child(4),
+.pv-task-row:nth-child(4) {
+    animation-delay: 0.12s;
+}
+
+.pv-task-card:nth-child(5),
+.pv-task-row:nth-child(5) {
+    animation-delay: 0.16s;
+}
+
+.pv-task-card:nth-child(6),
+.pv-task-row:nth-child(6) {
+    animation-delay: 0.2s;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #374151;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #4B5563;
+}
