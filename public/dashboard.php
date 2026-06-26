@@ -12,7 +12,7 @@ $user_id = $_SESSION['user_id'];
 
 // Fetch user's projects (where they are a member or owner)
 $projects_sql = "
-    SELECT p.id, p.name, p.description, p.owner_id, p.due_date, p.created_at
+    SELECT p.id, p.name, p.description, p.owner_id, p.due_date, p.created_at, p.workspace_id
     FROM projects p
     INNER JOIN project_members pm ON p.id = pm.project_id
     WHERE pm.user_id = ?
@@ -23,6 +23,22 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $projects_result = $stmt->get_result();
 $projects = $projects_result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Fetch workspaces (owned by user OR containing projects the user is a member of)
+$workspaces_sql = "
+    SELECT DISTINCT w.id, w.name, w.user_id as owner_id
+    FROM workspaces w
+    LEFT JOIN projects p ON p.workspace_id = w.id
+    LEFT JOIN project_members pm ON p.id = pm.project_id
+    WHERE w.user_id = ? OR pm.user_id = ?
+    ORDER BY w.name ASC
+";
+$stmt = $conn->prepare($workspaces_sql);
+$stmt->bind_param("ii", $user_id, $user_id);
+$stmt->execute();
+$workspaces_result = $stmt->get_result();
+$workspaces = $workspaces_result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Fetch task counts and member counts for each project
@@ -83,10 +99,6 @@ foreach ($projects as $project) {
 
             <div class="header-actions">
 
-                <a href="index.php" class="index-btn">
-                    ⌂ Home
-                </a>
-
                 <a href="project_create.php" class="create-btn">
                     + Create Project
                 </a>
@@ -99,43 +111,113 @@ foreach ($projects as $project) {
 
         </div>
 
-        <!-- Project Dashboard Section -->
-<div class="project-dashboard">
-    <h2>My Projects</h2>
-    <?php if (count($projects) > 0): ?>
-        <div class="projects-grid">
-            <?php foreach ($projects as $project): ?>
-                <a href="project_view.php?project_id=<?php echo $project['id']; ?>" class="project-card">
-                    <div class="project-header">
-                        <h3><?php echo htmlspecialchars($project['name']); ?></h3>
-                        <span class="project-role"><?php echo ($project['owner_id'] == $user_id) ? 'Owner' : 'Member'; ?></span>
+        <!-- Dashboard Layout -->
+        <div class="dashboard-layout">
+            
+            <!-- Sidebar (Workspaces) -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Workspaces</h2>
+                    <button class="new-workspace-btn" onclick="openWorkspaceModal()">+ New</button>
+                </div>
+                
+                <ul class="workspace-list" id="workspace-list">
+                    <!-- Dynamic Workspace List -->
+                    <?php foreach ($workspaces as $workspace): ?>
+                        <li class="workspace-item dropzone" 
+                            data-id="<?php echo $workspace['id']; ?>" 
+                            data-owner="<?php echo $workspace['owner_id']; ?>"
+                            onclick="selectWorkspace(<?php echo $workspace['id']; ?>)">
+                            <div class="workspace-name">
+                                📁 <span class="name-text"><?php echo htmlspecialchars($workspace['name']); ?></span>
+                            </div>
+                            <?php if ($workspace['owner_id'] == $user_id): ?>
+                                <div class="workspace-actions">
+                                    <button class="action-btn" onclick="editWorkspace(event, <?php echo $workspace['id']; ?>, '<?php echo htmlspecialchars(addslashes($workspace['name'])); ?>')">✎</button>
+                                    <button class="action-btn delete-btn" onclick="deleteWorkspace(event, <?php echo $workspace['id']; ?>)">🗑</button>
+                                </div>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                
+                <hr class="sidebar-divider">
+                
+                <div class="workspace-item dropzone active" data-id="null" onclick="selectWorkspace('null')">
+                    <div class="workspace-name">
+                        Uncategorized
                     </div>
-                    <p class="project-description"><?php echo htmlspecialchars(substr($project['description'], 0, 100)) . (strlen($project['description']) > 100 ? '...' : ''); ?></p>
-                    <div class="project-stats">
-                        <div class="stat">
-                            <span class="stat-value"><?php echo $project_stats[$project['id']]['task_count']; ?></span>
-                            <span class="stat-label">Tasks</span>
+                </div>
+            </div>
+
+            <!-- Main Content (Projects) -->
+            <div class="main-content">
+                <div class="main-header">
+                    <h2 id="current-workspace-title">Uncategorized</h2>
+                </div>
+
+                <div class="project-dashboard">
+                    <?php if (count($projects) > 0): ?>
+                        <div class="projects-grid" id="projects-grid">
+                            <?php foreach ($projects as $project): ?>
+                                <?php $is_owner = ($project['owner_id'] == $user_id); ?>
+                                <a href="project_view.php?project_id=<?php echo $project['id']; ?>" 
+                                   class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
+                                   data-id="<?php echo $project['id']; ?>"
+                                   data-workspace-id="<?php echo $project['workspace_id'] ?: 'null'; ?>"
+                                   <?php echo $is_owner ? 'draggable="true"' : ''; ?>
+                                >
+                                    <div class="project-header">
+                                        <h3><?php echo htmlspecialchars($project['name']); ?></h3>
+                                        <span class="project-role"><?php echo $is_owner ? 'Owner' : 'Member'; ?></span>
+                                    </div>
+                                    <p class="project-description"><?php echo htmlspecialchars(substr($project['description'], 0, 100)) . (strlen($project['description']) > 100 ? '...' : ''); ?></p>
+                                    <div class="project-stats">
+                                        <div class="stat">
+                                            <span class="stat-value"><?php echo $project_stats[$project['id']]['task_count']; ?></span>
+                                            <span class="stat-label">Tasks</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-value"><?php echo $project_stats[$project['id']]['member_count']; ?></span>
+                                            <span class="stat-label">Members</span>
+                                        </div>
+                                    </div>
+                                    <?php if ($project['due_date']): ?>
+                                        <div class="project-due">Due: <?php echo date('M d, Y', strtotime($project['due_date'])); ?></div>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
                         </div>
-                        <div class="stat">
-                            <span class="stat-value"><?php echo $project_stats[$project['id']]['member_count']; ?></span>
-                            <span class="stat-label">Members</span>
+                        <div id="empty-state" class="no-projects" style="display: none;">
+                            <p>No projects in this workspace.</p>
                         </div>
-                    </div>
-                    <?php if ($project['due_date']): ?>
-                        <div class="project-due">Due: <?php echo date('M d, Y', strtotime($project['due_date'])); ?></div>
+                    <?php else: ?>
+                        <div class="no-projects">
+                            <p>No projects yet. <a href="project_create.php">Create your first project</a></p>
+                        </div>
                     <?php endif; ?>
-                </a>
-            <?php endforeach; ?>
+                </div>
+            </div>
         </div>
-    <?php else: ?>
-        <div class="no-projects">
-            <p>No projects yet. <a href="project_create.php">Create your first project</a></p>
-        </div>
-    <?php endif; ?>
-</div>
 
     </div>
 
+    <!-- Modals & Toasts -->
+    <div id="workspaceModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">New Workspace</h3>
+            <input type="hidden" id="workspace_id_input" value="">
+            <input type="text" id="workspace_name_input" placeholder="Workspace Name" class="workspace-input">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeWorkspaceModal()">Cancel</button>
+                <button class="btn-save" onclick="saveWorkspace()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="assets/js/dashboard.js"></script>
 </body>
 
 </html>

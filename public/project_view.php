@@ -84,7 +84,7 @@ if (isset($_SESSION['success'])) {
       <div class="pv-header-buttons">
         <a href="project_manage.php?project_id=<?php echo $project_id; ?>" class="btn btn-secondary">👥 Team</a>
         <a href="task_create.php?project_id=<?php echo $project_id; ?>" class="btn btn-primary">＋ Add Task</a>
-        <a href="index.php" class="btn btn-back">← Dashboard</a>
+        <a href="dashboard.php" class="btn btn-back">← Dashboard</a>
       </div>
     </div>
 
