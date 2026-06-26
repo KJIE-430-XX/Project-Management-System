@@ -125,3 +125,96 @@ button:hover {
     color: #A7F3D0;
     border: 1px solid #10B981;
 }
+
+.message.info {
+    background-color: #1E3A5F;
+    color: #93C5FD;
+    border: 1px solid #3B82F6;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.message.info .otp-display {
+    display: block;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 10px;
+    color: #60A5FA;
+    margin-top: 8px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+/* Step indicator */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    gap: 0;
+}
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #1F2937;
+    border: 2px solid #374151;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.step-dot.active {
+    background-color: #A855F7;
+    border-color: #A855F7;
+    color: white;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+.step-dot.done {
+    background-color: #065F46;
+    border-color: #10B981;
+    color: #A7F3D0;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background-color: #374151;
+    max-width: 50px;
+    transition: background-color 0.3s ease;
+}
+
+.step-line.done {
+    background-color: #10B981;
+}
+
+/* OTP input */
+.otp-input {
+    text-align: center;
+    letter-spacing: 8px;
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    padding: 14px 10px;
+    color: #A855F7;
+}
+
+.otp-input:focus {
+    letter-spacing: 8px;
+}
+
+/* Password strength hint */
+.hint {
+    font-size: 11px;
+    color: #6B7280;
+    margin-top: 4px;
+    display: block;
+}
