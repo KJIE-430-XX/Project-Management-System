@@ -4,8 +4,17 @@ include 'db.php';
 include 'csrf.php';
 
 $message = '';
+$message_type = 'error';
 
+// Flash message from successful password reset
+if (isset($_GET['reset']) && $_GET['reset'] === 'success') {
+    $message = "Password reset successfully! Please log in with your new password.";
+    $message_type = 'success';
+}
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Always reset to error on a new POST submission
+    $message_type = 'error';
+
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!validateCSRFToken($csrf_token)) {
         $message = "Security validation failed. Please try again.";
@@ -15,17 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $password = $_POST['password'] ?? '';
 
         if (empty($username) || empty($password)) {
-            $message = "Username and password are required!";
+            $message = "Username or email and password are required!";
             error_log("Login: Missing credentials from IP " . $_SERVER['REMOTE_ADDR']);
         } else {
-            $select_sql = "SELECT id, name, username, password_hash FROM users WHERE username = ?";
+            // Accept login by username OR email
+            $select_sql = "SELECT id, name, username, password_hash FROM users WHERE username = ? OR email = ?";
             $stmt = $conn->prepare($select_sql);
             
             if ($stmt === false) {
                 $message = "Database error: " . $conn->error;
                 error_log("Login: Database prepare error - " . $conn->error);
             } else {
-                $stmt->bind_param("s", $username);
+                $stmt->bind_param("ss", $username, $username);
                 $stmt->execute();
                 $result = $stmt->get_result();
 
@@ -72,20 +82,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <h1>Login</h1>
         <?php if ($message): ?>
-            <div class="message error"><?php echo htmlspecialchars($message); ?></div>
+            <div class="message <?php echo htmlspecialchars($message_type); ?>"><?php echo htmlspecialchars($message); ?></div>
         <?php endif; ?>
 
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
             <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+                <label for="username">Username or Email:</label>
+                <input type="text" id="username" name="username" placeholder="Enter username or email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit">Login</button>
+            <div style="text-align: right; margin-top: 8px;">
+                <a href="forgot_password.php" style="font-size: 13px; color: #A855F7; text-decoration: none;" id="forgot-password-link">Forgot Password?</a>
+            </div>
         </form>
         <div class="link">
             Don't have an account? <a href="register.php">Register here</a>
