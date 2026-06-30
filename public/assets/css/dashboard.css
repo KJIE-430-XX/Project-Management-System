@@ -50,7 +50,8 @@ body {
 }
 
 .create-btn,
-.index-btn {
+.index-btn,
+.profile-btn {
     background-color: #A855F7;
     color: #FFFFFF;
     padding: 12px 24px;
@@ -63,17 +64,20 @@ body {
 }
 
 .create-btn:hover,
-.index-btn:hover {
+.index-btn:hover,
+.profile-btn:hover {
     background-color: #C084FC;
 }
 
 .create-btn:active,
-.index-btn:active {
+.index-btn:active,
+.profile-btn:active {
     background-color: #9333EA;
 }
 
 .create-btn:disabled,
-.index-btn:disabled {
+.index-btn:disabled,
+.profile-btn:disabled {
     background-color: #334155;
     color: #64748B;
     cursor: not-allowed;
