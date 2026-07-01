@@ -131,10 +131,6 @@ foreach ($projects as $project) {
 
             <div class="header-actions">
 
-                <a href="index.php" class="index-btn">
-                    ⌂ Home
-                </a>
-
                 <a href="profile.php" class="profile-btn">
                     👤 My Profile
                 </a>
