@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
 
     // Default select "Uncategorized" (null workspace)
-    filterProjects();
+    selectWorkspace('null');
 });
 
 let currentWorkspaceId = 'null';
@@ -18,12 +18,33 @@ function selectWorkspace(workspaceId) {
     
     // Find the clicked item
     const clickedItem = document.querySelector(`.workspace-item[data-id="${workspaceId}"]`);
+    const headerTitle = document.getElementById('current-workspace-title');
+    const headerCount = document.getElementById('current-workspace-count');
+    const headerProgress = document.getElementById('workspace-header-progress');
+    const headerProgressFill = document.getElementById('workspace-header-progress-bar-fill');
+    const headerProgressText = document.getElementById('workspace-header-progress-text');
+
     if (clickedItem) {
         clickedItem.classList.add('active');
-        const nameText = clickedItem.querySelector('.workspace-name').innerText.replace('📁', '').trim();
-        document.getElementById('current-workspace-title').innerText = nameText;
+        const nameEl = clickedItem.querySelector('.name-text');
+        const nameText = nameEl ? nameEl.innerText.trim() : "Workspace";
+        headerTitle.innerText = nameText;
+
+        const projCount = clickedItem.getAttribute('data-project-count') || 0;
+        const totalTasks = parseInt(clickedItem.getAttribute('data-total-tasks') || 0);
+        const compTasks = parseInt(clickedItem.getAttribute('data-completed-tasks') || 0);
+        const percent = parseFloat(clickedItem.getAttribute('data-progress-percent') || 0);
+
+        headerCount.innerText = `(${projCount} project${projCount == 1 ? '' : 's'})`;
+        
+        // Show progress bar in main content
+        headerProgress.style.display = 'flex';
+        headerProgressFill.style.width = `${percent}%`;
+        headerProgressText.innerText = `${percent}% (${compTasks}/${totalTasks})`;
     } else {
-        document.getElementById('current-workspace-title').innerText = "Uncategorized";
+        headerTitle.innerText = "Uncategorized";
+        headerCount.innerText = "";
+        headerProgress.style.display = 'none';
     }
 
     // Filter projects
@@ -124,6 +145,7 @@ function initDragAndDrop() {
                     showToast('Project moved successfully');
                     draggable.setAttribute('data-workspace-id', targetWorkspaceId);
                     filterProjects(); // Hide it from current view if it was filtered
+                    setTimeout(() => location.reload(), 1000); // Reload to update workspace stats
                 } else {
                     showToast(result.message || 'Error moving project', true);
                 }

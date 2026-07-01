@@ -44,8 +44,8 @@ $stmt->close();
 // Fetch task counts and member counts for each project
 $project_stats = [];
 foreach ($projects as $project) {
-    // Task count
-    $task_sql = "SELECT COUNT(*) as task_count FROM tasks WHERE project_id = ?";
+    // Task count (total and completed)
+    $task_sql = "SELECT COUNT(*) as task_count, SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) as completed_count FROM tasks WHERE project_id = ?";
     $task_stmt = $conn->prepare($task_sql);
     $task_stmt->bind_param("i", $project['id']);
     $task_stmt->execute();
@@ -64,8 +64,38 @@ foreach ($projects as $project) {
 
     $project_stats[$project['id']] = [
         'task_count' => $task_data['task_count'],
+        'completed_count' => $task_data['completed_count'] ?? 0,
         'member_count' => $member_data['member_count']
     ];
+}
+
+// Aggregate workspace statistics
+$workspace_stats = [];
+$workspace_stats['null'] = [
+    'project_count' => 0,
+    'total_tasks' => 0,
+    'completed_tasks' => 0
+];
+foreach ($workspaces as $workspace) {
+    $workspace_stats[$workspace['id']] = [
+        'project_count' => 0,
+        'total_tasks' => 0,
+        'completed_tasks' => 0
+    ];
+}
+foreach ($projects as $project) {
+    $w_id = $project['workspace_id'] ?: 'null';
+    if (!isset($workspace_stats[$w_id])) {
+        $workspace_stats[$w_id] = [
+            'project_count' => 0,
+            'total_tasks' => 0,
+            'completed_tasks' => 0
+        ];
+    }
+    $p_stats = $project_stats[$project['id']];
+    $workspace_stats[$w_id]['project_count']++;
+    $workspace_stats[$w_id]['total_tasks'] += $p_stats['task_count'];
+    $workspace_stats[$w_id]['completed_tasks'] += $p_stats['completed_count'];
 }
 ?>
 <!DOCTYPE html>
@@ -124,28 +154,77 @@ foreach ($projects as $project) {
                 <ul class="workspace-list" id="workspace-list">
                     <!-- Dynamic Workspace List -->
                     <?php foreach ($workspaces as $workspace): ?>
+                        <?php 
+                        $w_id = $workspace['id'];
+                        $w_stats = $workspace_stats[$w_id] ?? ['project_count' => 0, 'total_tasks' => 0, 'completed_tasks' => 0];
+                        $total_t = $w_stats['total_tasks'];
+                        $comp_t = $w_stats['completed_tasks'];
+                        $percent = $total_t > 0 ? round(($comp_t / $total_t) * 100, 1) : 0;
+                        ?>
                         <li class="workspace-item dropzone" 
-                            data-id="<?php echo $workspace['id']; ?>" 
+                            data-id="<?php echo $w_id; ?>" 
                             data-owner="<?php echo $workspace['owner_id']; ?>"
-                            onclick="selectWorkspace(<?php echo $workspace['id']; ?>)">
-                            <div class="workspace-name">
-                                📁 <span class="name-text"><?php echo htmlspecialchars($workspace['name']); ?></span>
-                            </div>
-                            <?php if ($workspace['owner_id'] == $user_id): ?>
-                                <div class="workspace-actions">
-                                    <button class="action-btn" onclick="editWorkspace(event, <?php echo $workspace['id']; ?>, '<?php echo htmlspecialchars(addslashes($workspace['name'])); ?>')">✎</button>
-                                    <button class="action-btn delete-btn" onclick="deleteWorkspace(event, <?php echo $workspace['id']; ?>)">🗑</button>
+                            data-project-count="<?php echo $w_stats['project_count']; ?>"
+                            data-total-tasks="<?php echo $total_t; ?>"
+                            data-completed-tasks="<?php echo $comp_t; ?>"
+                            data-progress-percent="<?php echo $percent; ?>"
+                            onclick="selectWorkspace(<?php echo $w_id; ?>)">
+                            <div class="workspace-item-content">
+                                <div class="workspace-main-row">
+                                    <div class="workspace-name">
+                                        📁 <span class="name-text"><?php echo htmlspecialchars($workspace['name']); ?></span>
+                                        <span class="project-count-tag"><?php echo $w_stats['project_count']; ?> projects</span>
+                                    </div>
+                                    <?php if ($workspace['owner_id'] == $user_id): ?>
+                                        <div class="workspace-actions">
+                                            <button class="action-btn" onclick="editWorkspace(event, <?php echo $workspace['id']; ?>, '<?php echo htmlspecialchars(addslashes($workspace['name'])); ?>')">✎</button>
+                                            <button class="action-btn delete-btn" onclick="deleteWorkspace(event, <?php echo $workspace['id']; ?>)">🗑</button>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
+                                <div class="workspace-progress-container">
+                                    <div class="workspace-progress-bar-wrapper">
+                                        <div class="workspace-progress-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
+                                    </div>
+                                    <div class="workspace-progress-text">
+                                        Progress: <?php echo $percent; ?>% (<?php echo $comp_t; ?>/<?php echo $total_t; ?>)
+                                    </div>
+                                </div>
+                            </div>
                         </li>
                     <?php endforeach; ?>
                 </ul>
                 
                 <hr class="sidebar-divider">
                 
-                <div class="workspace-item dropzone active" data-id="null" onclick="selectWorkspace('null')">
-                    <div class="workspace-name">
-                        Uncategorized
+                <?php 
+                $w_stats = $workspace_stats['null'];
+                $total_t = $w_stats['total_tasks'];
+                $comp_t = $w_stats['completed_tasks'];
+                $percent = $total_t > 0 ? round(($comp_t / $total_t) * 100, 1) : 0;
+                ?>
+                <div class="workspace-item dropzone active" 
+                     data-id="null" 
+                     data-project-count="<?php echo $w_stats['project_count']; ?>"
+                     data-total-tasks="<?php echo $total_t; ?>"
+                     data-completed-tasks="<?php echo $comp_t; ?>"
+                     data-progress-percent="<?php echo $percent; ?>"
+                     onclick="selectWorkspace('null')">
+                    <div class="workspace-item-content">
+                        <div class="workspace-main-row">
+                            <div class="workspace-name">
+                                📁 <span class="name-text">Uncategorized</span>
+                                <span class="project-count-tag"><?php echo $w_stats['project_count']; ?> projects</span>
+                            </div>
+                        </div>
+                        <div class="workspace-progress-container">
+                            <div class="workspace-progress-bar-wrapper">
+                                <div class="workspace-progress-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
+                            </div>
+                            <div class="workspace-progress-text">
+                                Progress: <?php echo $percent; ?>% (<?php echo $comp_t; ?>/<?php echo $total_t; ?>)
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,7 +232,17 @@ foreach ($projects as $project) {
             <!-- Main Content (Projects) -->
             <div class="main-content">
                 <div class="main-header">
-                    <h2 id="current-workspace-title">Uncategorized</h2>
+                    <div class="main-header-left">
+                        <h2 id="current-workspace-title">Uncategorized</h2>
+                        <span id="current-workspace-count" class="workspace-header-count"></span>
+                    </div>
+                    <!-- Workspace Header Progress Bar -->
+                    <div id="workspace-header-progress" class="workspace-header-progress-container" style="display: none;">
+                        <div class="workspace-header-progress-bar-wrapper">
+                            <div id="workspace-header-progress-bar-fill" class="workspace-header-progress-bar-fill"></div>
+                        </div>
+                        <div id="workspace-header-progress-text" class="workspace-header-progress-text"></div>
+                    </div>
                 </div>
 
                 <div class="project-dashboard">
