@@ -10,12 +10,12 @@ let currentWorkspaceId = 'null';
 
 function selectWorkspace(workspaceId) {
     currentWorkspaceId = workspaceId;
-    
+
     // Update active class on sidebar
     document.querySelectorAll('.workspace-item').forEach(el => {
         el.classList.remove('active');
     });
-    
+
     // Find the clicked item
     const clickedItem = document.querySelector(`.workspace-item[data-id="${workspaceId}"]`);
     const headerTitle = document.getElementById('current-workspace-title');
@@ -36,7 +36,7 @@ function selectWorkspace(workspaceId) {
         const percent = parseFloat(clickedItem.getAttribute('data-progress-percent') || 0);
 
         headerCount.innerText = `(${projCount} project${projCount == 1 ? '' : 's'})`;
-        
+
         // Show progress bar in main content
         headerProgress.style.display = 'flex';
         headerProgressFill.style.width = `${percent}%`;
@@ -57,7 +57,7 @@ function filterProjects() {
 
     projects.forEach(project => {
         const projectWorkspaceId = project.getAttribute('data-workspace-id');
-        
+
         if (currentWorkspaceId === 'all') {
             project.style.display = 'flex';
             visibleCount++;
@@ -71,13 +71,13 @@ function filterProjects() {
 
     const emptyState = document.getElementById('empty-state');
     const projectsGrid = document.getElementById('projects-grid');
-    
+
     if (visibleCount === 0 && projects.length > 0) {
-        if(projectsGrid) projectsGrid.style.display = 'none';
-        if(emptyState) emptyState.style.display = 'block';
+        if (projectsGrid) projectsGrid.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
     } else {
-        if(projectsGrid) projectsGrid.style.display = 'grid';
-        if(emptyState) emptyState.style.display = 'none';
+        if (projectsGrid) projectsGrid.style.display = 'grid';
+        if (emptyState) emptyState.style.display = 'none';
     }
 }
 
@@ -89,7 +89,8 @@ function initDragAndDrop() {
     const dropzones = document.querySelectorAll('.dropzone');
 
     draggables.forEach(draggable => {
-        draggable.addEventListener('dragstart', () => {
+        draggable.addEventListener('dragstart', (e) => {
+            e.dataTransfer?.setData('text/plain', draggable.getAttribute('data-id') || '');
             draggable.classList.add('dragging');
         });
 
@@ -101,12 +102,7 @@ function initDragAndDrop() {
     dropzones.forEach(dropzone => {
         dropzone.addEventListener('dragover', e => {
             e.preventDefault();
-            // Allow drop only if user is owner of the workspace or it's uncategorized
-            // Wait, we can drop if it's the uncategorized folder or if they own it.
-            // Wait! A user can drop into any workspace they own.
-            // If they are members of a workspace someone else owns, they can't drop?
-            // "Validation: User owns project, Workspace exists, Workspace belongs to same owner"
-            // The API validates this. We will just allow dragover for UI simplicity, and API will reject if not allowed.
+            // Add drag-over styling; server-side API validates whether the drop is permitted.
             dropzone.classList.add('drag-over');
         });
 
@@ -117,7 +113,7 @@ function initDragAndDrop() {
         dropzone.addEventListener('drop', async e => {
             e.preventDefault();
             dropzone.classList.remove('drag-over');
-            
+
             const draggable = document.querySelector('.dragging');
             if (!draggable) return;
 
@@ -140,7 +136,7 @@ function initDragAndDrop() {
                 });
 
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showToast('Project moved successfully');
                     draggable.setAttribute('data-workspace-id', targetWorkspaceId);
@@ -250,7 +246,7 @@ function showToast(message, isError = false) {
     toast.style.backgroundColor = isError ? '#EF4444' : '#10B981';
     toast.style.opacity = '1';
     toast.style.bottom = '20px';
-    
+
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.bottom = '-50px';

@@ -29,16 +29,30 @@ if ($workspace_id <= 0 || empty($name)) {
     exit;
 }
 
-// Ensure the workspace belongs to the logged in user
-$stmt = $conn->prepare("UPDATE workspaces SET name = ? WHERE id = ? AND user_id = ?");
-$stmt->bind_param("sii", $name, $workspace_id, $user_id);
-$stmt->execute();
+// Ensure the workspace exists and belongs to the logged in user
+$check_stmt = $conn->prepare("SELECT id FROM workspaces WHERE id = ? AND user_id = ?");
+$check_stmt->bind_param("ii", $workspace_id, $user_id);
+$check_stmt->execute();
+$check_stmt->store_result();
 
-if ($stmt->affected_rows > 0) {
-    echo json_encode(['success' => true, 'message' => 'Workspace renamed']);
-} else {
+if ($check_stmt->num_rows === 0) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Workspace not found or unauthorized']);
+    $check_stmt->close();
+    $conn->close();
+    exit;
+}
+$check_stmt->close();
+
+// Update the workspace name
+$stmt = $conn->prepare("UPDATE workspaces SET name = ? WHERE id = ? AND user_id = ?");
+$stmt->bind_param("sii", $name, $workspace_id, $user_id);
+
+if ($stmt->execute()) {
+    echo json_encode(['success' => true, 'message' => 'Workspace renamed']);
+} else {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Failed to rename workspace']);
 }
 
 $stmt->close();

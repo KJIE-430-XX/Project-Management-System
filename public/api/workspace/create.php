@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $user_id = $_SESSION['user_id'];
 $data = json_decode(file_get_contents('php://input'), true);
+if (!is_array($data)) { $data = []; }
 $name = trim($data['name'] ?? ($_POST['name'] ?? ''));
 
 if (empty($name)) {

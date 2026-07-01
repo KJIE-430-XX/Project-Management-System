@@ -177,7 +177,7 @@ foreach ($projects as $project) {
                                     </div>
                                     <?php if ($workspace['owner_id'] == $user_id): ?>
                                         <div class="workspace-actions">
-                                            <button class="action-btn" onclick="editWorkspace(event, <?php echo $workspace['id']; ?>, '<?php echo htmlspecialchars(addslashes($workspace['name'])); ?>')">✎</button>
+                                            <button class="action-btn" onclick="editWorkspace(event, <?php echo (int)$workspace['id']; ?>, <?php echo htmlspecialchars(json_encode($workspace['name']), ENT_QUOTES, 'UTF-8'); ?>)">✎</button>
                                             <button class="action-btn delete-btn" onclick="deleteWorkspace(event, <?php echo $workspace['id']; ?>)">🗑</button>
                                         </div>
                                     <?php endif; ?>
