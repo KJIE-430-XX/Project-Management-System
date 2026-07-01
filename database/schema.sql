@@ -28,6 +28,19 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ============================================================
+-- Workspaces
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS workspaces (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  name        VARCHAR(255) NOT NULL,
+  user_id     INT NOT NULL,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ============================================================
 -- Projects
 -- ============================================================
 
@@ -36,10 +49,12 @@ CREATE TABLE IF NOT EXISTS projects (
   name        VARCHAR(255) NOT NULL,
   description TEXT,
   owner_id    INT NOT NULL,
+  workspace_id INT NULL DEFAULT NULL,
   due_date    DATE,
   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (owner_id) REFERENCES users(id)
+  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE SET NULL
 );
 
 -- ============================================================
