@@ -8,14 +8,21 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'db.php';
+require_once __DIR__ . '/csrf.php';
+require_once __DIR__ . '/includes/project_lifecycle.php';
 $user_id = $_SESSION['user_id'];
+
+purgeExpiredTrashedProjects($conn);
+
+$success_msg = $_SESSION['success'] ?? '';
+unset($_SESSION['success']);
 
 // Fetch user's projects (where they are a member or owner)
 $projects_sql = "
     SELECT p.id, p.name, p.description, p.owner_id, p.due_date, p.created_at, p.workspace_id
     FROM projects p
     INNER JOIN project_members pm ON p.id = pm.project_id
-    WHERE pm.user_id = ?
+    WHERE pm.user_id = ? AND p.deleted_at IS NULL
     ORDER BY p.updated_at DESC
 ";
 $stmt = $conn->prepare($projects_sql);
@@ -24,6 +31,14 @@ $stmt->execute();
 $projects_result = $stmt->get_result();
 $projects = $projects_result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+$trash_count_stmt = $conn->prepare("SELECT COUNT(*) AS trash_count FROM projects WHERE owner_id = ? AND deleted_at IS NOT NULL");
+$trash_count_stmt->bind_param("i", $user_id);
+$trash_count_stmt->execute();
+$trash_count = (int)($trash_count_stmt->get_result()->fetch_assoc()['trash_count'] ?? 0);
+$trash_count_stmt->close();
+
+$csrf_token = generateCSRFToken();
 
 // Fetch workspaces (owned by user OR containing projects the user is a member of)
 $workspaces_sql = "
@@ -115,7 +130,15 @@ foreach ($projects as $project) {
 
 <body>
 
+    <script>
+        window.PROMANAGE_CSRF_TOKEN = <?php echo json_encode($csrf_token); ?>;
+    </script>
+
     <div class="container">
+
+        <?php if (!empty($success_msg)): ?>
+            <div class="dashboard-alert-success"><?php echo htmlspecialchars($success_msg); ?></div>
+        <?php endif; ?>
 
         <!-- Header -->
 
@@ -131,6 +154,10 @@ foreach ($projects as $project) {
 
                 <a href="project_create.php" class="create-btn">
                     + Create Project
+                </a>
+
+                <a href="trash.php" class="trash-btn">
+                    Trash<?php echo $trash_count > 0 ? ' (' . $trash_count . ')' : ''; ?>
                 </a>
 
                 <a href="logout.php" class="logout-btn">
@@ -250,17 +277,20 @@ foreach ($projects as $project) {
                         <div class="projects-grid" id="projects-grid">
                             <?php foreach ($projects as $project): ?>
                                 <?php $is_owner = ($project['owner_id'] == $user_id); ?>
-                                <a href="project_view.php?project_id=<?php echo $project['id']; ?>" 
-                                   class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
+                                          <div class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
                                    data-id="<?php echo $project['id']; ?>"
+                                   data-name="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>"
                                    data-workspace-id="<?php echo $project['workspace_id'] ?: 'null'; ?>"
                                    <?php echo $is_owner ? 'draggable="true"' : ''; ?>
                                 >
                                     <div class="project-header">
-                                        <h3><?php echo htmlspecialchars($project['name']); ?></h3>
+                                        <div class="project-title-row">
+                                            <h3 class="project-name-label" id="project-name-label-<?php echo (int)$project['id']; ?>" data-original-name="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($project['name']); ?></h3>
+                                            <input type="text" class="project-name-input" id="project-name-input-<?php echo (int)$project['id']; ?>" data-project-id="<?php echo (int)$project['id']; ?>" value="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>" style="display:none;">
+                                        </div>
                                         <span class="project-role"><?php echo $is_owner ? 'Owner' : 'Member'; ?></span>
                                     </div>
-                                    <p class="project-description"><?php echo htmlspecialchars(substr($project['description'], 0, 100)) . (strlen($project['description']) > 100 ? '...' : ''); ?></p>
+                                    <p class="project-description"><?php echo htmlspecialchars(substr($project['description'] ?? '', 0, 100)) . (strlen($project['description'] ?? '') > 100 ? '...' : ''); ?></p>
                                     <div class="project-stats">
                                         <div class="stat">
                                             <span class="stat-value"><?php echo $project_stats[$project['id']]['task_count']; ?></span>
@@ -274,7 +304,14 @@ foreach ($projects as $project) {
                                     <?php if ($project['due_date']): ?>
                                         <div class="project-due">Due: <?php echo date('M d, Y', strtotime($project['due_date'])); ?></div>
                                     <?php endif; ?>
-                                </a>
+                                    <div class="project-actions-row">
+                                        <?php if ($is_owner): ?>
+                                            <button type="button" class="project-action-btn" onclick="toggleProjectRename(event, <?php echo (int)$project['id']; ?>)">✎</button>
+                                            <button type="button" class="project-action-btn danger" onclick="confirmProjectTrash(event, <?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['name']), ENT_QUOTES, 'UTF-8'); ?>)">🗑</button>
+                                        <?php endif; ?>
+                                        <button type="button" class="project-open-btn" onclick="openProject(<?php echo (int)$project['id']; ?>)">Open</button>
+                                    </div>
+                                </div>
                             <?php endforeach; ?>
                         </div>
                         <div id="empty-state" class="no-projects" style="display: none;">
@@ -307,6 +344,7 @@ foreach ($projects as $project) {
     <div id="toast" class="toast"></div>
 
     <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/project-actions.js"></script>
 </body>
 
 </html>

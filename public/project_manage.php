@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 
 include 'db.php';
 include 'csrf.php';
+require_once __DIR__ . '/includes/project_lifecycle.php';
 
 $project_id = (int)($_GET['project_id'] ?? 0);
 $user_id = $_SESSION['user_id'];
@@ -19,7 +20,7 @@ if ($project_id === 0) {
 $p_stmt = $conn->prepare("
     SELECT p.* 
     FROM projects p 
-    WHERE p.id = ? AND p.owner_id = ?
+    WHERE p.id = ? AND p.owner_id = ? AND p.deleted_at IS NULL
 ");
 $p_stmt->bind_param("ii", $project_id, $user_id);
 $p_stmt->execute();

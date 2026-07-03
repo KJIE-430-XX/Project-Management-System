@@ -1,13 +1,15 @@
 <?php
 session_start();
 include 'db.php';
+require_once __DIR__ . '/includes/project_lifecycle.php';
 
 $isLoggedIn = isset($_SESSION['user_id']);
 $projects = [];
 
 if ($isLoggedIn) {
   $user_id = $_SESSION['user_id'];
-  $p_stmt = $conn->prepare("SELECT p.* FROM projects p JOIN project_members pm ON p.id = pm.project_id WHERE pm.user_id = ?");
+  purgeExpiredTrashedProjects($conn);
+  $p_stmt = $conn->prepare("SELECT p.* FROM projects p JOIN project_members pm ON p.id = pm.project_id WHERE pm.user_id = ? AND p.deleted_at IS NULL");
   $p_stmt->bind_param("i", $user_id);
   $p_stmt->execute();
   $projects = $p_stmt->get_result()->fetch_all(MYSQLI_ASSOC);

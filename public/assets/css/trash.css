@@ -1,0 +1,140 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0B0F19;
+    color: #F8FAFC;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.trash-container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 0 48px;
+}
+
+.trash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    background: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.trash-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 34px;
+}
+
+.trash-header p {
+    margin: 0;
+    color: #94A3B8;
+}
+
+.trash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.trash-card {
+    background: #161B26;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.trash-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+}
+
+.trash-badge {
+    display: inline-block;
+    background: rgba(99, 102, 241, 0.15);
+    color: #A5B4FC;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.trash-description {
+    color: #94A3B8;
+    line-height: 1.5;
+    margin: 14px 0;
+}
+
+.trash-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #94A3B8;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.trash-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: #A855F7;
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background: #C084FC;
+}
+
+.btn-danger {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
+.btn-danger:hover {
+    background: #F87171;
+}
+
+.btn-secondary {
+    background: #334155;
+    color: #F8FAFC;
+}
+
+.trash-empty {
+    background: #161B26;
+    border: 1px dashed rgba(168, 85, 247, 0.3);
+    border-radius: 14px;
+    padding: 40px;
+    text-align: center;
+    color: #94A3B8;
+}
+
+.trash-empty h2 {
+    color: #F8FAFC;
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .trash-header {
+        flex-direction: column;
+    }
+}
