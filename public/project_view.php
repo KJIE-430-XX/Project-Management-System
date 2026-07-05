@@ -43,10 +43,10 @@ $t_stmt = $conn->prepare("
     ) chosen ON chosen.task_id = ta.task_id AND chosen.user_id = ta.user_id
   ) task_assignee ON task_assignee.task_id = t.id
   LEFT JOIN users au ON au.id = task_assignee.user_id
-    WHERE t.project_id = ? 
+    WHERE t.project_id = ? AND (t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta2 WHERE ta2.task_id = t.id AND ta2.user_id = ?))
     ORDER BY t.created_at DESC
 ");
-$t_stmt->bind_param("i", $project_id);
+$t_stmt->bind_param("iii", $project_id, $user_id, $user_id);
 $t_stmt->execute();
 $tasks = $t_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $t_stmt->close();
