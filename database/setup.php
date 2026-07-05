@@ -98,7 +98,7 @@ foreach ($statements as $statement) {
 if ($success) {
     echo "✓ Database and tables created successfully!\n";
     echo "The Task Tracker database is now ready to use.\n";
-    echo "Start the application by visiting: http://localhost/Task-Tracker-Development/public/index.php\n";
+    echo "Start the application by visiting: http://localhost/Task-Tracker-Development/public/dashboard.php\n";
 } else {
     echo "✗ Error creating database or tables\n";
     foreach ($errors as $error) {
