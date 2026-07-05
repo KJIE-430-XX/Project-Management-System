@@ -9,7 +9,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once '../../db.php';
+require_once __DIR__ . '/../../db.php';
+require_once __DIR__ . '/../../includes/project_lifecycle.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -31,7 +32,7 @@ if ($project_id <= 0) {
 }
 
 // 1. Verify user is owner of the project
-$stmt = $conn->prepare("SELECT owner_id FROM projects WHERE id = ?");
+$stmt = $conn->prepare("SELECT owner_id FROM projects WHERE id = ? AND deleted_at IS NULL");
 $stmt->bind_param("i", $project_id);
 $stmt->execute();
 $result = $stmt->get_result();

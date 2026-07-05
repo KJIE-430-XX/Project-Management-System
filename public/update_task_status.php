@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 include 'db.php';
 include 'csrf.php';
+require_once __DIR__ . '/includes/project_lifecycle.php';
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -42,8 +43,9 @@ if (!in_array($new_status_id, [1, 2, 3])) {
 $check = $conn->prepare("
     SELECT t.id, t.status_id, t.project_id 
     FROM tasks t 
-    JOIN project_members pm ON t.project_id = pm.project_id 
-    WHERE t.id = ? AND pm.user_id = ?
+    JOIN project_members pm ON t.project_id = pm.project_id
+    JOIN projects p ON p.id = t.project_id
+    WHERE t.id = ? AND pm.user_id = ? AND p.deleted_at IS NULL
 ");
 $check->bind_param("ii", $task_id, $user_id);
 $check->execute();

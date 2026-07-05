@@ -50,11 +50,14 @@ CREATE TABLE IF NOT EXISTS projects (
   description TEXT,
   owner_id    INT NOT NULL,
   workspace_id INT NULL DEFAULT NULL,
+  deleted_at  TIMESTAMP NULL DEFAULT NULL,
+  deleted_by  INT NULL DEFAULT NULL,
   due_date    DATE,
   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (owner_id) REFERENCES users(id),
-  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE SET NULL
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE SET NULL,
+  FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ============================================================
