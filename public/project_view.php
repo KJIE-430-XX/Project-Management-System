@@ -46,12 +46,20 @@ $total_tasks = count($tasks);
 $completed_count = 0;
 $todo_count = 0;
 $pending_count = 0;
+$active_tasks = [];
+$completed_tasks = [];
 foreach ($tasks as $t) {
     $sid = (int)($t['status_id'] ?? 2);
-    if ($sid === 1) $completed_count++;
-    elseif ($sid === 2) $todo_count++;
+  if ($sid === 1) {
+    $completed_count++;
+    $completed_tasks[] = $t;
+  } else {
+    $active_tasks[] = $t;
+    if ($sid === 2) $todo_count++;
     elseif ($sid === 3) $pending_count++;
+  }
 }
+$active_count = count($active_tasks);
 
 // Generate CSRF token for AJAX calls
 $csrf_token = generateCSRFToken();
@@ -143,109 +151,215 @@ if (isset($_SESSION['success'])) {
       <?php if ($total_tasks > 0): ?>
 
         <!-- ===== GRID VIEW ===== -->
-        <div id="gridView" class="pv-tasks-grid">
-          <?php foreach ($tasks as $task):
-            $sid = (int)($task['status_id'] ?? 2);
-            $pid = (int)($task['priority_id'] ?? 3);
-            $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
-            $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
-            $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
-            $stInfo  = $statuses[$sid]   ?? ['label'=>'To Do','class'=>'todo'];
-            $isCompleted = ($sid === 1);
-            $isTodo      = ($sid === 2);
-            $isPending   = ($sid === 3);
-          ?>
-            <div class="pv-task-card <?php echo $isCompleted ? 'completed' : ''; ?>" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
-              <div class="pv-task-top">
-                <?php if ($isTodo): ?>
-                  <button class="pv-circle-check" title="Mark as completed"
-                          onclick="updateStatus(<?php echo $task['id']; ?>, 1, this)"></button>
-                <?php elseif ($isCompleted): ?>
-                  <button class="pv-circle-check checked" title="Completed" disabled></button>
-                <?php else: ?>
-                  <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
-                <?php endif; ?>
-                <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
-              </div>
-
-              <?php if (!empty($task['description'])): ?>
-                <div class="pv-task-desc">
-                  <?php echo htmlspecialchars(substr($task['description'], 0, 100)); ?><?php echo strlen($task['description']) > 100 ? '…' : ''; ?>
-                </div>
-              <?php endif; ?>
-
-              <div class="pv-task-meta">
-                <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>">
-                  <?php echo $stInfo['label']; ?>
-                </span>
-                <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>">
-                  <?php echo $priInfo['label']; ?>
-                </span>
-                <?php if ($isPending): ?>
-                  <button class="pv-btn-activate" title="Move to To Do"
-                          onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
-                <?php endif; ?>
-                <?php if ($task['due_date']): ?>
-                  <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && !$isCompleted) ? 'overdue' : ''; ?>">
-                    📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
-                  </span>
-                <?php endif; ?>
-                <span class="pv-creator">by <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?></span>
-              </div>
+        <div id="gridView" class="pv-task-view">
+          <div class="pv-task-group">
+            <div class="pv-section-heading">
+              <h3>Active Tasks</h3>
+              <span class="pv-section-count" data-count="active-grid"><?php echo $active_count; ?></span>
             </div>
-          <?php endforeach; ?>
+            <div id="gridActiveTasks" class="pv-tasks-grid">
+              <div class="pv-empty-state" data-empty-state="grid-active">No active tasks right now.</div>
+              <?php foreach ($active_tasks as $task):
+                $sid = (int)($task['status_id'] ?? 2);
+                $pid = (int)($task['priority_id'] ?? 3);
+                $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
+                $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
+                $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
+                $stInfo  = $statuses[$sid]   ?? ['label'=>'To Do','class'=>'todo'];
+                $isTodo      = ($sid === 2);
+                $isPending   = ($sid === 3);
+              ?>
+                <div class="pv-task-card" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
+                  <div class="pv-task-top">
+                    <?php if ($isTodo): ?>
+                      <button class="pv-circle-check" title="Mark as completed"
+                              onclick="updateStatus(<?php echo $task['id']; ?>, 1, this)"></button>
+                    <?php else: ?>
+                      <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
+                    <?php endif; ?>
+                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                  </div>
+
+                  <?php if (!empty($task['description'])): ?>
+                    <div class="pv-task-desc">
+                      <?php echo htmlspecialchars(substr($task['description'], 0, 100)); ?><?php echo strlen($task['description']) > 100 ? '…' : ''; ?>
+                    </div>
+                  <?php endif; ?>
+
+                  <div class="pv-task-meta">
+                    <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>">
+                      <?php echo $stInfo['label']; ?>
+                    </span>
+                    <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>">
+                      <?php echo $priInfo['label']; ?>
+                    </span>
+                    <?php if ($isPending): ?>
+                      <button class="pv-btn-activate" title="Move to To Do"
+                              onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                    <?php endif; ?>
+                    <?php if ($task['due_date']): ?>
+                      <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && $sid !== 1) ? 'overdue' : ''; ?>">
+                        📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
+                      </span>
+                    <?php endif; ?>
+                    <span class="pv-creator">by <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?></span>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+
+          <details class="pv-completed-panel" id="gridCompletedPanel">
+            <summary>
+              <span>Completed Tasks</span>
+              <span class="pv-section-count" data-count="completed-grid"><?php echo $completed_count; ?></span>
+            </summary>
+            <div id="gridCompletedTasks" class="pv-tasks-grid">
+              <div class="pv-empty-state" data-empty-state="grid-completed">No completed tasks yet.</div>
+              <?php foreach ($completed_tasks as $task):
+                $sid = (int)($task['status_id'] ?? 2);
+                $pid = (int)($task['priority_id'] ?? 3);
+                $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
+                $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
+                $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
+                $stInfo  = $statuses[$sid]   ?? ['label'=>'Completed','class'=>'completed'];
+              ?>
+                <div class="pv-task-card completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
+                  <div class="pv-task-top">
+                    <button class="pv-circle-check checked" title="Move to To Do"
+                            onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)"></button>
+                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                  </div>
+
+                  <?php if (!empty($task['description'])): ?>
+                    <div class="pv-task-desc">
+                      <?php echo htmlspecialchars(substr($task['description'], 0, 100)); ?><?php echo strlen($task['description']) > 100 ? '…' : ''; ?>
+                    </div>
+                  <?php endif; ?>
+
+                  <div class="pv-task-meta">
+                    <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>">
+                      <?php echo $stInfo['label']; ?>
+                    </span>
+                    <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>">
+                      <?php echo $priInfo['label']; ?>
+                    </span>
+                    <?php if ($task['due_date']): ?>
+                      <span class="pv-due-date">
+                        📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
+                      </span>
+                    <?php endif; ?>
+                    <span class="pv-creator">by <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?></span>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </details>
         </div>
 
         <!-- ===== LIST VIEW ===== -->
-        <div id="listView" class="pv-tasks-list hidden">
-          <?php foreach ($tasks as $task):
-            $sid = (int)($task['status_id'] ?? 2);
-            $pid = (int)($task['priority_id'] ?? 3);
-            $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
-            $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
-            $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
-            $stInfo  = $statuses[$sid]   ?? ['label'=>'To Do','class'=>'todo'];
-            $isCompleted = ($sid === 1);
-            $isTodo      = ($sid === 2);
-            $isPending   = ($sid === 3);
-          ?>
-            <div class="pv-task-row <?php echo $isCompleted ? 'completed' : ''; ?>" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
-              <?php if ($isTodo): ?>
-                <button class="pv-circle-check" title="Mark as completed"
-                        onclick="updateStatus(<?php echo $task['id']; ?>, 1, this)"></button>
-              <?php elseif ($isCompleted): ?>
-                <button class="pv-circle-check checked" title="Completed" disabled></button>
-              <?php else: ?>
-                <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
-              <?php endif; ?>
-
-              <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
-
-              <span class="pv-task-meta-cell">
-                <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>"><?php echo $stInfo['label']; ?></span>
-              </span>
-
-              <span class="pv-task-meta-cell">
-                <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>"><?php echo $priInfo['label']; ?></span>
-              </span>
-
-              <span class="pv-task-meta-cell">
-                <?php if ($isPending): ?>
-                  <button class="pv-btn-activate" onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
-                <?php elseif ($task['due_date']): ?>
-                  <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && !$isCompleted) ? 'overdue' : ''; ?>">
-                    📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
-                  </span>
-                <?php else: ?>
-                  –
-                <?php endif; ?>
-              </span>
-
-              <span class="pv-task-meta-cell pv-creator">
-                <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?>
-              </span>
+        <div id="listView" class="pv-task-view hidden">
+          <div class="pv-task-group">
+            <div class="pv-section-heading">
+              <h3>Active Tasks</h3>
+              <span class="pv-section-count" data-count="active-list"><?php echo $active_count; ?></span>
             </div>
-          <?php endforeach; ?>
+            <div id="listActiveTasks" class="pv-tasks-list">
+              <div class="pv-empty-state" data-empty-state="list-active">No active tasks right now.</div>
+              <?php foreach ($active_tasks as $task):
+                $sid = (int)($task['status_id'] ?? 2);
+                $pid = (int)($task['priority_id'] ?? 3);
+                $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
+                $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
+                $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
+                $stInfo  = $statuses[$sid]   ?? ['label'=>'To Do','class'=>'todo'];
+                $isTodo      = ($sid === 2);
+                $isPending   = ($sid === 3);
+              ?>
+                <div class="pv-task-row" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
+                  <?php if ($isTodo): ?>
+                    <button class="pv-circle-check" title="Mark as completed"
+                            onclick="updateStatus(<?php echo $task['id']; ?>, 1, this)"></button>
+                  <?php else: ?>
+                    <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
+                  <?php endif; ?>
+
+                  <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+
+                  <span class="pv-task-meta-cell">
+                    <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>"><?php echo $stInfo['label']; ?></span>
+                  </span>
+
+                  <span class="pv-task-meta-cell">
+                    <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>"><?php echo $priInfo['label']; ?></span>
+                  </span>
+
+                  <span class="pv-task-meta-cell">
+                    <?php if ($isPending): ?>
+                      <button class="pv-btn-activate" onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                    <?php elseif ($task['due_date']): ?>
+                      <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && $sid !== 1) ? 'overdue' : ''; ?>">
+                        📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
+                      </span>
+                    <?php else: ?>
+                      –
+                    <?php endif; ?>
+                  </span>
+
+                  <span class="pv-task-meta-cell pv-creator">
+                    <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?>
+                  </span>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+
+          <details class="pv-completed-panel" id="listCompletedPanel">
+            <summary>
+              <span>Completed Tasks</span>
+              <span class="pv-section-count" data-count="completed-list"><?php echo $completed_count; ?></span>
+            </summary>
+            <div id="listCompletedTasks" class="pv-tasks-list">
+              <div class="pv-empty-state" data-empty-state="list-completed">No completed tasks yet.</div>
+              <?php foreach ($completed_tasks as $task):
+                $sid = (int)($task['status_id'] ?? 2);
+                $pid = (int)($task['priority_id'] ?? 3);
+                $priorities = [1 => ['label'=>'High','class'=>'high'], 2 => ['label'=>'Medium','class'=>'medium'], 3 => ['label'=>'Low','class'=>'low']];
+                $statuses   = [1 => ['label'=>'Completed','class'=>'completed'], 2 => ['label'=>'To Do','class'=>'todo'], 3 => ['label'=>'Pending','class'=>'pending']];
+                $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
+                $stInfo  = $statuses[$sid]   ?? ['label'=>'Completed','class'=>'completed'];
+              ?>
+                <div class="pv-task-row completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>">
+                  <button class="pv-circle-check checked" title="Move to To Do"
+                          onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)"></button>
+
+                  <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+
+                  <span class="pv-task-meta-cell">
+                    <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>"><?php echo $stInfo['label']; ?></span>
+                  </span>
+
+                  <span class="pv-task-meta-cell">
+                    <span class="pv-priority pv-priority-<?php echo $priInfo['class']; ?>"><?php echo $priInfo['label']; ?></span>
+                  </span>
+
+                  <span class="pv-task-meta-cell">
+                    <?php if ($task['due_date']): ?>
+                      <span class="pv-due-date">
+                        📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
+                      </span>
+                    <?php else: ?>
+                      –
+                    <?php endif; ?>
+                  </span>
+
+                  <span class="pv-task-meta-cell pv-creator">
+                    <?php echo htmlspecialchars($task['creator_name'] ?? 'System'); ?>
+                  </span>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </details>
         </div>
 
       <?php else: ?>
@@ -269,6 +383,12 @@ if (isset($_SESSION['success'])) {
     const listView = document.getElementById('listView');
     const btnGrid  = document.getElementById('btnGridView');
     const btnList  = document.getElementById('btnListView');
+    const gridActiveTasks = document.getElementById('gridActiveTasks');
+    const gridCompletedTasks = document.getElementById('gridCompletedTasks');
+    const listActiveTasks = document.getElementById('listActiveTasks');
+    const listCompletedTasks = document.getElementById('listCompletedTasks');
+    const gridCompletedPanel = document.getElementById('gridCompletedPanel');
+    const listCompletedPanel = document.getElementById('listCompletedPanel');
 
     // Restore saved preference
     const savedView = localStorage.getItem('pv_view') || 'grid';
@@ -345,15 +465,23 @@ if (isset($_SESSION['success'])) {
         card.setAttribute('data-status', newStatusId);
 
         const circleBtn = card.querySelector('.pv-circle-check');
+        const isRow = card.classList.contains('pv-task-row');
+        const targetContainer = isRow
+          ? (newStatusId === 1 ? listCompletedTasks : listActiveTasks)
+          : (newStatusId === 1 ? gridCompletedTasks : gridActiveTasks);
+
+        if (targetContainer && card.parentElement !== targetContainer) {
+          targetContainer.appendChild(card);
+        }
 
         if (newStatusId === 1) {
           // Completed
           card.classList.add('completed');
           if (circleBtn) {
             circleBtn.className = 'pv-circle-check checked';
-            circleBtn.disabled = true;
-            circleBtn.title = 'Completed';
-            circleBtn.onclick = null;
+            circleBtn.disabled = false;
+            circleBtn.title = 'Move to To Do';
+            circleBtn.onclick = function() { updateStatus(taskId, 2, this); };
           }
           // Update badge
           const badge = card.querySelector('.pv-badge');
@@ -385,8 +513,29 @@ if (isset($_SESSION['success'])) {
         }
       });
 
+      if (newStatusId === 1) {
+        if (gridCompletedPanel) gridCompletedPanel.open = true;
+        if (listCompletedPanel) listCompletedPanel.open = true;
+      }
+
+      syncEmptyStates();
       // Update stat counters
       updateStatCounters();
+    }
+
+    function syncEmptyStates() {
+      const sections = [
+        { container: gridActiveTasks, empty: document.querySelector('[data-empty-state="grid-active"]') },
+        { container: gridCompletedTasks, empty: document.querySelector('[data-empty-state="grid-completed"]') },
+        { container: listActiveTasks, empty: document.querySelector('[data-empty-state="list-active"]') },
+        { container: listCompletedTasks, empty: document.querySelector('[data-empty-state="list-completed"]') }
+      ];
+
+      sections.forEach(section => {
+        if (!section.container || !section.empty) return;
+        const hasTasks = section.container.querySelector('[data-task-id]') !== null;
+        section.empty.classList.toggle('is-visible', !hasTasks);
+      });
     }
 
     function updateStatCounters() {
@@ -407,7 +556,18 @@ if (isset($_SESSION['success'])) {
         statValues[2].textContent = todo;
         statValues[3].textContent = pend;
       }
+
+      const activeCount = todo + pend;
+      const completedCount = comp;
+      document.querySelectorAll('[data-count="active-grid"], [data-count="active-list"]').forEach(el => {
+        el.textContent = activeCount;
+      });
+      document.querySelectorAll('[data-count="completed-grid"], [data-count="completed-list"]').forEach(el => {
+        el.textContent = completedCount;
+      });
     }
+
+    syncEmptyStates();
   })();
   </script>
 </body>

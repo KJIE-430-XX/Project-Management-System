@@ -198,6 +198,104 @@ a:hover {
     color: #F8FAFC;
 }
 
+.pv-task-view {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.pv-task-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pv-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pv-section-heading h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #E2E8F0;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.pv-section-count {
+    min-width: 34px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background-color: rgba(168, 85, 247, 0.14);
+    color: #C084FC;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pv-completed-panel {
+    border: 1px solid rgba(168, 85, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.28);
+    overflow: hidden;
+}
+
+.pv-completed-panel > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #F8FAFC;
+    border-bottom: 1px solid transparent;
+}
+
+.pv-completed-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+.pv-completed-panel > summary::after {
+    content: '▾';
+    color: #A855F7;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.pv-completed-panel[open] > summary {
+    border-bottom-color: rgba(168, 85, 247, 0.12);
+}
+
+.pv-completed-panel[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+.pv-completed-panel > .pv-tasks-grid,
+.pv-completed-panel > .pv-tasks-list {
+    padding: 16px;
+}
+
+.pv-empty-state {
+    display: none;
+    grid-column: 1 / -1;
+    padding: 14px 16px;
+    border: 1px dashed rgba(148, 163, 184, 0.22);
+    border-radius: 10px;
+    color: #94A3B8;
+    background: rgba(15, 23, 42, 0.32);
+    font-size: 13px;
+}
+
+.pv-empty-state.is-visible {
+    display: block;
+}
+
 .pv-view-toggle {
     display: flex;
     background-color: #1E293B;
