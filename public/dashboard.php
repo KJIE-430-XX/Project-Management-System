@@ -60,9 +60,9 @@ $stmt->close();
 $project_stats = [];
 foreach ($projects as $project) {
     // Task count (total and completed)
-    $task_sql = "SELECT COUNT(*) as task_count, SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) as completed_count FROM tasks WHERE project_id = ?";
+    $task_sql = "SELECT COUNT(*) as task_count, SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) as completed_count FROM tasks t WHERE t.project_id = ? AND (t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = ?))";
     $task_stmt = $conn->prepare($task_sql);
-    $task_stmt->bind_param("i", $project['id']);
+    $task_stmt->bind_param("iii", $project['id'], $user_id, $user_id);
     $task_stmt->execute();
     $task_result = $task_stmt->get_result();
     $task_data = $task_result->fetch_assoc();
