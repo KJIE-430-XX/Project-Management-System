@@ -166,6 +166,9 @@ if ($conn === null) {
                 <div class="profile-row"><span class="profile-label">Email</span><span><?php echo htmlspecialchars($user['email']); ?></span></div>
                 <div class="profile-row"><span class="profile-label">Username</span><span><?php echo htmlspecialchars($user['username']); ?></span></div>
                 <div class="profile-row"><span class="profile-label">Member Since</span><span><?php echo date('M d, Y', strtotime($user['created_at'])); ?></span></div>
+                <div class="profile-row" style="border-bottom:none; justify-content:flex-start; gap: 10px; margin-top: 20px;">
+                    <a href="profile_manage.php" class="submit-btn" style="display: inline-block; text-decoration: none;">Edit Profile</a>
+                </div>
             <?php endif; ?>
 
             <div class="password-form">
