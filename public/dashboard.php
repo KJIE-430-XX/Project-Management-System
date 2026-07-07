@@ -280,6 +280,8 @@ foreach ($projects as $project) {
                                           <div class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
                                    data-id="<?php echo $project['id']; ?>"
                                    data-name="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                   data-description="<?php echo htmlspecialchars($project['description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                   data-due-date="<?php echo htmlspecialchars($project['due_date'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                    data-workspace-id="<?php echo $project['workspace_id'] ?: 'null'; ?>"
                                    <?php echo $is_owner ? 'draggable="true"' : ''; ?>
                                 >
@@ -306,7 +308,7 @@ foreach ($projects as $project) {
                                     <?php endif; ?>
                                     <div class="project-actions-row">
                                         <?php if ($is_owner): ?>
-                                            <button type="button" class="project-action-btn" onclick="toggleProjectRename(event, <?php echo (int)$project['id']; ?>)">✎</button>
+                                            <button type="button" class="project-action-btn" onclick="openProjectEditModal(event, <?php echo (int)$project['id']; ?>)">✎</button>
                                             <button type="button" class="project-action-btn danger" onclick="confirmProjectTrash(event, <?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['name']), ENT_QUOTES, 'UTF-8'); ?>)">🗑</button>
                                         <?php endif; ?>
                                         <button type="button" class="project-open-btn" onclick="openProject(<?php echo (int)$project['id']; ?>)">Open</button>
@@ -337,6 +339,33 @@ foreach ($projects as $project) {
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeWorkspaceModal()">Cancel</button>
                 <button class="btn-save" onclick="saveWorkspace()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Edit Modal -->
+    <div id="projectEditModal" class="modal project-edit-modal">
+        <div class="modal-content project-edit-modal-content">
+            <div class="project-edit-modal-header">
+                <h3>Edit Project</h3>
+                <button class="project-edit-modal-close" onclick="closeProjectEditModal()" aria-label="Close">&times;</button>
+            </div>
+            <input type="hidden" id="edit_project_id" value="">
+            <div class="project-edit-field">
+                <label for="edit_project_name">Project Name <span class="required">*</span></label>
+                <input type="text" id="edit_project_name" class="project-edit-input" placeholder="Enter project name" maxlength="255">
+            </div>
+            <div class="project-edit-field">
+                <label for="edit_project_description">Description</label>
+                <textarea id="edit_project_description" class="project-edit-input project-edit-textarea" placeholder="Enter project description" rows="4" maxlength="1000"></textarea>
+            </div>
+            <div class="project-edit-field">
+                <label for="edit_project_due_date">Due Date</label>
+                <input type="date" id="edit_project_due_date" class="project-edit-input">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeProjectEditModal()">Cancel</button>
+                <button class="btn-save" id="saveProjectEditBtn" onclick="saveProjectEdit()">Save Changes</button>
             </div>
         </div>
     </div>
