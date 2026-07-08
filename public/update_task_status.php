@@ -41,20 +41,44 @@ if (!in_array($new_status_id, [1, 2, 3])) {
 
 // Verify the task exists and user has access to the project
 $check = $conn->prepare("
-    SELECT t.id, t.status_id, t.project_id 
-    FROM tasks t 
-    JOIN project_members pm ON t.project_id = pm.project_id
-    JOIN projects p ON p.id = t.project_id
-    WHERE t.id = ? AND pm.user_id = ? AND p.deleted_at IS NULL
+    SELECT
+        t.id,
+        t.status_id,
+        t.project_id
+    FROM tasks t
+
+    INNER JOIN projects p
+        ON p.id = t.project_id
+
+    INNER JOIN project_members pm
+        ON pm.project_id = t.project_id
+        AND pm.user_id = ?
+
+    INNER JOIN task_assignees ta
+        ON ta.task_id = t.id
+        AND ta.user_id = ?
+
+    WHERE
+        t.id = ?
+        AND p.deleted_at IS NULL
+
+    LIMIT 1
 ");
-$check->bind_param("ii", $task_id, $user_id);
+$check->bind_param(
+    "iii",
+    $user_id,
+    $user_id,
+    $task_id
+);
 $check->execute();
 $task = $check->get_result()->fetch_assoc();
 $check->close();
 
 if (!$task) {
     http_response_code(404);
-    echo json_encode(['error' => 'Task not found or access denied']);
+    echo json_encode([
+    'error' => 'Only the assigned user can update this task.'
+]);
     exit;
 }
 

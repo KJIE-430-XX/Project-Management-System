@@ -43,20 +43,43 @@ if ($taskId <= 0 || $title === '' || !in_array($statusId, [1, 2, 3], true) || !i
 }
 
 $taskStmt = $conn->prepare("
-    SELECT t.id, t.project_id, t.status_id, p.due_date AS project_due_date
+    SELECT
+        t.id,
+        t.project_id,
+        t.status_id,
+        p.due_date AS project_due_date
     FROM tasks t
-    JOIN projects p ON p.id = t.project_id
-    JOIN project_members pm ON pm.project_id = t.project_id
-    WHERE t.id = ? AND pm.user_id = ? AND p.deleted_at IS NULL
+
+    INNER JOIN projects p
+        ON p.id = t.project_id
+
+    INNER JOIN project_members pm
+        ON pm.project_id = t.project_id
+        AND pm.user_id = ?
+
+    INNER JOIN task_assignees ta
+        ON ta.task_id = t.id
+        AND ta.user_id = ?
+
+    WHERE
+        t.id = ?
+        AND p.deleted_at IS NULL
+
+    LIMIT 1
 ");
-$taskStmt->bind_param("ii", $taskId, $userId);
+$taskStmt->bind_param(
+    "iii",
+    $userId,
+    $userId,
+    $taskId
+);
 $taskStmt->execute();
 $task = $taskStmt->get_result()->fetch_assoc();
 $taskStmt->close();
 
 if (!$task) {
     http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Task not found or unauthorized']);
+    echo json_encode(['success' => false, 'message' => 'Only the assigned user can edit this task.']);
     exit;
 }
 
