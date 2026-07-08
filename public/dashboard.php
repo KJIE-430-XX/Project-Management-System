@@ -70,14 +70,14 @@ foreach ($projects as $project) {
     $task_data = $task_result->fetch_assoc();
     $task_stmt->close();
 
-        // Member count
-        $member_sql = "SELECT COUNT(*) as member_count FROM project_members WHERE project_id = ?";
-        $member_stmt = $conn->prepare($member_sql);
-        $member_stmt->bind_param("i", $project['id']);
-        $member_stmt->execute();
-        $member_result = $member_stmt->get_result();
-        $member_data = $member_result->fetch_assoc();
-        $member_stmt->close();
+    // Member count
+    $member_sql = "SELECT COUNT(*) as member_count FROM project_members WHERE project_id = ?";
+    $member_stmt = $conn->prepare($member_sql);
+    $member_stmt->bind_param("i", $project['id']);
+    $member_stmt->execute();
+    $member_result = $member_stmt->get_result();
+    $member_data = $member_result->fetch_assoc();
+    $member_stmt->close();
 
     $project_stats[$project['id']] = [
         'task_count' => $task_data['task_count'],
@@ -282,16 +282,8 @@ foreach ($projects as $project) {
                     <?php if (count($projects) > 0): ?>
                         <div class="projects-grid" id="projects-grid">
                             <?php foreach ($projects as $project): ?>
-                                <?php 
-                                $is_owner = ($project['owner_id'] == $user_id); 
-                                $project_progress = $project_stats[$project['id']];
-                                $task_count = (int)($project_progress['task_count'] ?? 0);
-                                $completed_count = (int)($project_progress['completed_count'] ?? 0);
-                                $project_percent = $task_count > 0 ? round(($completed_count / $task_count) * 100, 1) : 0;
-                                $progress_color = $project_percent >= 80 ? '#22c55e' : ($project_percent >= 50 ? '#3b82f6' : '#f59e0b');
-                                ?>
-                                <a href="project_view.php?project_id=<?php echo $project['id']; ?>" 
-                                   class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
+                                <?php $is_owner = ($project['owner_id'] == $user_id); ?>
+                                          <div class="project-card <?php echo $is_owner ? 'draggable' : ''; ?>"
                                    data-id="<?php echo $project['id']; ?>"
                                    data-name="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>"
                                    data-description="<?php echo htmlspecialchars($project['description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
@@ -309,20 +301,12 @@ foreach ($projects as $project) {
                                     <p class="project-description"><?php echo htmlspecialchars(substr($project['description'] ?? '', 0, 100)) . (strlen($project['description'] ?? '') > 100 ? '...' : ''); ?></p>
                                     <div class="project-stats">
                                         <div class="stat">
-                                            <span class="stat-value"><?php echo $task_count; ?></span>
+                                            <span class="stat-value"><?php echo $project_stats[$project['id']]['task_count']; ?></span>
                                             <span class="stat-label">Tasks</span>
                                         </div>
                                         <div class="stat">
-                                            <span class="stat-value"><?php echo $project_progress['member_count']; ?></span>
+                                            <span class="stat-value"><?php echo $project_stats[$project['id']]['member_count']; ?></span>
                                             <span class="stat-label">Members</span>
-                                        </div>
-                                    </div>
-                                    <div class="project-progress-container">
-                                        <div class="project-progress-bar-wrapper">
-                                            <div class="project-progress-bar-fill" style="width: <?php echo $project_percent; ?>%;"></div>
-                                        </div>
-                                        <div class="project-progress-text">
-                                            Progress: <?php echo $project_percent; ?>% (<?php echo $completed_count; ?>/<?php echo $task_count; ?>)
                                         </div>
                                     </div>
                                     <?php if ($project['due_date']): ?>
