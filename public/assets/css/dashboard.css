@@ -100,6 +100,23 @@ body {
     background-color: #C084FC;
 }
 
+.trash-btn {
+    background-color: #6366F1;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.trash-btn:hover {
+    background-color: #818CF8;
+}
+
 .logout-btn:hover {
     background-color: rgb(255, 138, 138);
 }
@@ -433,6 +450,7 @@ body {
     text-decoration: none;
     color: inherit;
     transition: all 0.3s ease;
+    cursor: default;
 }
 
 .project-card:hover {
@@ -440,6 +458,13 @@ body {
     background-color: #1a202c;
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(168, 85, 247, 0.15);
+}
+
+.project-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
 }
 
 .project-header {
@@ -454,6 +479,72 @@ body {
     font-size: 18px;
     color: #F8FAFC;
     flex: 1;
+}
+
+.project-name-input {
+    width: 100%;
+    background: #0F172A;
+    border: 1px solid #A855F7;
+    border-radius: 8px;
+    color: #F8FAFC;
+    padding: 8px 10px;
+    font-size: 18px;
+    box-sizing: border-box;
+}
+
+.project-actions-row {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.project-action-btn,
+.project-open-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.project-action-btn {
+    background: rgba(168, 85, 247, 0.15);
+    color: #F8FAFC;
+}
+
+.project-action-btn:hover {
+    background: rgba(168, 85, 247, 0.25);
+}
+
+.project-action-btn.danger {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.project-action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.project-open-btn {
+    background: #A855F7;
+    color: #FFFFFF;
+    margin-left: auto;
+}
+
+.project-open-btn:hover {
+    background: #C084FC;
+}
+
+.dashboard-alert-success {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #D1FAE5;
+    font-weight: 600;
 }
 
 .project-role {
@@ -617,4 +708,92 @@ body {
     z-index: 2000;
     font-weight: 500;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Project Edit Modal */
+.project-edit-modal .project-edit-modal-content {
+    width: 480px;
+    max-width: 95vw;
+    padding: 28px 32px 24px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(168, 85, 247, 0.1);
+}
+
+.project-edit-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.project-edit-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #F8FAFC;
+    font-weight: 600;
+}
+
+.project-edit-modal-close {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.project-edit-modal-close:hover {
+    color: #F8FAFC;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.project-edit-field {
+    margin-bottom: 18px;
+}
+
+.project-edit-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #CBD5E1;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+}
+
+.project-edit-field .required {
+    color: #F87171;
+    margin-left: 2px;
+}
+
+.project-edit-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #F8FAFC;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.project-edit-input:focus {
+    outline: none;
+    border-color: #A855F7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+.project-edit-textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+}
+
+.project-edit-input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
 }

@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 
 include 'db.php';
 include 'csrf.php';
+require_once __DIR__ . '/includes/project_lifecycle.php';
 
 $error = '';
 $success = '';
@@ -25,7 +26,7 @@ $proj_stmt = $conn->prepare("
     SELECT p.name, p.due_date 
     FROM projects p 
     JOIN project_members pm ON p.id = pm.project_id 
-    WHERE p.id = ? AND pm.user_id = ?
+    WHERE p.id = ? AND pm.user_id = ? AND p.deleted_at IS NULL
 ");
 $proj_stmt->bind_param("ii", $project_id, $user_id);
 $proj_stmt->execute();
