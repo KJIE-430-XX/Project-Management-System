@@ -515,7 +515,26 @@ if (isset($_SESSION['success'])) {
     </div>
 
 </div>
-    </aside>
+<hr class="pv-comments-divider">
+
+<div class="pv-history-section">
+
+    <h4 class="pv-comments-title">
+        🕒 Activity History
+    </h4>
+
+    <div
+        id="pvHistoryList"
+        class="pv-comments-list">
+
+        <div class="pv-comments-empty">
+            No activity yet.
+        </div>
+
+    </div>
+
+</div>
+</aside>
 
   </div>
 
@@ -644,6 +663,7 @@ if (isset($_SESSION['success'])) {
       taskTitleInput.select();
 
       loadComments(selectedTaskId);
+      loadHistory(selectedTaskId);
     }
 
     function closeTaskDrawer() {
@@ -735,6 +755,81 @@ function escapeHtml(text) {
     div.textContent = text ?? '';
 
     return div.innerHTML;
+
+}
+async function loadHistory(taskId) {
+    console.log("========== HISTORY ==========");
+    const historyList = document.getElementById('pvHistoryList');
+
+    historyList.innerHTML =
+        '<div class="pv-comments-empty">Loading...</div>';
+
+    try {
+
+        const response = await fetch(
+            'api/task/history.php?task_id=' + encodeURIComponent(taskId)
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            renderHistory(data.history);
+
+        } else {
+
+            historyList.innerHTML =
+                '<div class="pv-comments-empty">Unable to load history.</div>';
+
+        }
+
+    } catch (e) {
+
+        historyList.innerHTML =
+            '<div class="pv-comments-empty">Network error.</div>';
+
+    }
+
+}
+function renderHistory(history) {
+
+    const historyList = document.getElementById('pvHistoryList');
+
+    if (!history || history.length === 0) {
+
+        historyList.innerHTML =
+            '<div class="pv-comments-empty">No activity yet.</div>';
+
+        return;
+    }
+
+    historyList.innerHTML = history.map(item => `
+
+        <div class="pv-history-item">
+
+            <div class="pv-history-header">
+
+                <strong>${escapeHtml(item.changed_by)}</strong>
+
+                <span>${escapeHtml(item.created_at)}</span>
+
+            </div>
+
+            <div class="pv-history-body">
+
+                Changed status from
+
+                <strong>${escapeHtml(item.old_status)}</strong>
+
+                →
+
+                <strong>${escapeHtml(item.new_status)}</strong>
+
+            </div>
+
+        </div>
+
+    `).join('');
 
 }
 async function submitComment() {
