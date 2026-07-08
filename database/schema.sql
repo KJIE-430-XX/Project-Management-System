@@ -127,7 +127,29 @@ CREATE TABLE IF NOT EXISTS task_status_history (
   FOREIGN KEY (new_status_id) REFERENCES status(id),
   FOREIGN KEY (changed_by)    REFERENCES users(id)
 );
+-- ============================================================
+-- Task Comments
+-- ============================================================
 
+CREATE TABLE IF NOT EXISTS task_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    task_id INT NOT NULL,
+
+    user_id INT NOT NULL,
+
+    comment TEXT NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (task_id)
+        REFERENCES tasks(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
 -- ============================================================
 -- Seed data
 -- ============================================================
