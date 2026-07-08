@@ -12,6 +12,13 @@ require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/includes/project_lifecycle.php';
 $user_id = $_SESSION['user_id'];
 
+// Fetch current user details
+$user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$user_stmt->bind_param("i", $user_id);
+$user_stmt->execute();
+$current_user = $user_stmt->get_result()->fetch_assoc();
+$user_stmt->close();
+
 purgeExpiredTrashedProjects($conn);
 
 $success_msg = $_SESSION['success'] ?? '';
@@ -146,6 +153,19 @@ foreach ($projects as $project) {
 
         <div class="header">
 
+            <div class="user-dropdown-container">
+                <div class="user-dropdown-toggle">
+                    <div style="display: flex; flex-direction: column; text-align: left; justify-content: center;">
+                        <span class="user-name" style="font-weight: 600; font-size: 14px; line-height: 1.2;"><?php echo htmlspecialchars($current_user['name'] ?? 'Unknown User'); ?></span>
+                        <span class="user-email" style="font-size: 12px; opacity: 0.7; line-height: 1.2;"><?php echo htmlspecialchars($current_user['email'] ?? ''); ?></span>
+                    </div>
+                    <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
+                </div>
+                <div class="user-dropdown-menu">
+                    <a href="profile.php">👤 My Profile</a>
+                </div>
+            </div>
+
             <h1><span class="pro-text">Pro</span><span class="manage-text">Manage</span></h1>
 
             <p class="dashboard-subtitle">
@@ -153,10 +173,6 @@ foreach ($projects as $project) {
             </p>
 
             <div class="header-actions">
-
-                <a href="profile.php" class="profile-btn">
-                    👤 My Profile
-                </a>
 
                 <a href="project_create.php" class="create-btn">
                     + Create Project
