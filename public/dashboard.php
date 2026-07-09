@@ -135,6 +135,8 @@ foreach ($projects as $project) {
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
 </head>
 
 <body>
@@ -162,8 +164,8 @@ foreach ($projects as $project) {
                     <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
                 </div>
                 <div class="user-dropdown-menu">
-                    <a href="profile.php">👤 My Profile</a>
-                    <a href="logout.php">🚪 Logout</a>
+                    <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> My Profile</a>
+                    <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
                 </div>
             </div>
 
@@ -325,6 +327,22 @@ foreach ($projects as $project) {
                                     <?php if ($project['due_date']): ?>
                                         <div class="project-due">Due: <?php echo date('M d, Y', strtotime($project['due_date'])); ?></div>
                                     <?php endif; ?>
+                                    
+                                    <?php 
+                                    $p_total_t = $project_stats[$project['id']]['task_count'] ?? 0;
+                                    $p_comp_t = $project_stats[$project['id']]['completed_count'] ?? 0;
+                                    $p_percent = $p_total_t > 0 ? round(($p_comp_t / $p_total_t) * 100, 1) : 0;
+                                    ?>
+                                    <div class="project-progress-container">
+                                        <div class="project-progress-bar-wrapper">
+                                            <div class="project-progress-bar-fill" style="width: <?php echo $p_percent; ?>%;"></div>
+                                        </div>
+                                        <div class="project-progress-text">
+                                            <span>Progress</span>
+                                            <span><?php echo $p_percent; ?>% (<?php echo $p_comp_t; ?>/<?php echo $p_total_t; ?>)</span>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="project-actions-row">
                                         <?php if ($is_owner): ?>
                                             <button type="button" class="project-action-btn" onclick="openProjectEditModal(event, <?php echo (int)$project['id']; ?>)">✎</button>

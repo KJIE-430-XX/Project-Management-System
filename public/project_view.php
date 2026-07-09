@@ -110,6 +110,7 @@ if (isset($_SESSION['success'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?php echo htmlspecialchars($project['name']); ?> – ProManage</title>
   <link rel="stylesheet" href="assets/css/project-view.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
   <div class="pv-container">
@@ -127,8 +128,8 @@ if (isset($_SESSION['success'])) {
               <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
           </div>
           <div class="user-dropdown-menu">
-              <a href="profile.php">👤 My Profile</a>
-              <a href="logout.php">🚪 Logout</a>
+              <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> My Profile</a>
+              <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
           </div>
       </div>
     </div>

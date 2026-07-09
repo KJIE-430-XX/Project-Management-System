@@ -493,6 +493,34 @@ body {
     box-sizing: border-box;
 }
 
+.project-progress-container {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.project-progress-bar-wrapper {
+    height: 6px;
+    background-color: #1F2937;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.project-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #A855F7, #6366F1);
+    border-radius: 999px;
+    transition: width 0.4s ease-in-out;
+}
+
+.project-progress-text {
+    font-size: 11px;
+    color: #94A3B8;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+}
+
 .project-actions-row {
     display: flex;
     gap: 10px;
