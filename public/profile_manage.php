@@ -59,9 +59,8 @@ if ($conn === null) {
             $username_changed = $updated_username !== $user['username'];
             $requires_password = $email_changed || $username_changed;
 
-            if ($requires_password && empty($current_password)) {
-                $message = "Your current password is required to change email or username.";
-                $message_type = 'error';
+            if (false) {
+                // placeholder — password modal handles collection client-side
             } else {
                 if ($requires_password) {
                     $verify_stmt = $conn->prepare("SELECT password_hash FROM users WHERE id = ?");
@@ -95,14 +94,15 @@ if ($conn === null) {
                     $update_stmt->bind_param("sssi", $updated_name, $updated_email, $updated_username, $user_id);
 
                     if ($update_stmt->execute()) {
-                        $message = "Profile updated successfully.";
-                        $message_type = 'success';
+                        $_SESSION['success'] = "Profile updated successfully.";
                         $user['name'] = $updated_name;
                         $user['email'] = $updated_email;
                         $user['username'] = $updated_username;
                         if ($username_changed) {
                             $_SESSION['username'] = $updated_username;
                         }
+                        header("Location: profile.php");
+                        exit;
                     } else {
                         $message = "Failed to save changes. Please try again.";
                         $message_type = 'error';
@@ -205,6 +205,95 @@ if ($conn === null) {
         .profile-back:hover {
             background-color: #C084FC;
         }
+        /* Password confirmation modal */
+        .pw-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .pw-modal-overlay.active {
+            display: flex;
+        }
+        .pw-modal {
+            background: #161B26;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: modalSlideIn 0.2s ease;
+        }
+        @keyframes modalSlideIn {
+            from { transform: translateY(-16px); opacity: 0; }
+            to   { transform: translateY(0);     opacity: 1; }
+        }
+        .pw-modal h3 {
+            margin: 0 0 8px;
+            color: #F8FAFC;
+            font-size: 18px;
+        }
+        .pw-modal p {
+            margin: 0 0 18px;
+            color: #94A3B8;
+            font-size: 14px;
+        }
+        .pw-modal input[type=password] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background-color: #0B0F19;
+            color: #F8FAFC;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 6px;
+        }
+        .pw-modal input[type=password]:focus {
+            outline: none;
+            border-color: #A855F7;
+        }
+        .pw-modal-error {
+            color: #FCA5A5;
+            font-size: 13px;
+            min-height: 18px;
+            margin-bottom: 14px;
+        }
+        .pw-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .pw-modal-actions .btn-cancel {
+            background: transparent;
+            border: 1px solid rgba(148,163,184,0.3);
+            color: #94A3B8;
+            padding: 9px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .pw-modal-actions .btn-cancel:hover {
+            background: rgba(148,163,184,0.1);
+        }
+        .pw-modal-actions .btn-confirm {
+            background: #A855F7;
+            border: none;
+            color: #fff;
+            padding: 9px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .pw-modal-actions .btn-confirm:hover {
+            background: #C084FC;
+        }
     </style>
 </head>
 <body>
@@ -214,7 +303,6 @@ if ($conn === null) {
             <p class="dashboard-subtitle">Update your profile information</p>
             <div class="header-actions">
                 <a href="profile.php" class="index-btn">← Back to Profile</a>
-                <a href="logout.php" class="logout-btn">Logout</a>
             </div>
         </div>
 
@@ -241,16 +329,107 @@ if ($conn === null) {
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($updated_username); ?>" required>
                     </div>
-                    <div class="form-group">
-                        <label for="current_password">Current Password</label>
-                        <input type="password" id="current_password" name="current_password" placeholder="Required only for email/username changes">
-                    </div>
-                    <button type="submit" class="submit-btn">Save Changes</button>
+                    <input type="hidden" id="current_password" name="current_password" value="">
+                    <button type="submit" class="submit-btn" id="saveChangesBtn">Save Changes</button>
                 </form>
+
+                <!-- Password Confirmation Modal -->
+                <div class="pw-modal-overlay" id="pwModalOverlay">
+                    <div class="pw-modal" role="dialog" aria-modal="true" aria-labelledby="pwModalTitle">
+                        <h3 id="pwModalTitle">🔒 Confirm Your Identity</h3>
+                        <p>You're changing your email or username. Please enter your current password to continue.</p>
+                        <div style="position: relative;">
+                            <input type="password" id="pwModalInput" placeholder="Current password" autocomplete="current-password" style="padding-right: 40px;">
+                            <button type="button" onclick="togglePwModal()" tabindex="-1" aria-label="Toggle password visibility" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748B;padding:0;font-size:16px;line-height:1;" id="pwModalEyeBtn">&#128065;</button>
+                        </div>
+                        <div class="pw-modal-error" id="pwModalError"></div>
+                        <div class="pw-modal-actions">
+                            <button type="button" class="btn-cancel" id="pwModalCancel">Cancel</button>
+                            <button type="button" class="btn-confirm" id="pwModalConfirm">Confirm &amp; Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                (function () {
+                    const originalEmail    = <?php echo json_encode($user['email']); ?>;
+                    const originalUsername = <?php echo json_encode($user['username']); ?>;
+
+                    const form        = document.querySelector('form');
+                    const emailInput  = document.getElementById('email');
+                    const userInput   = document.getElementById('username');
+                    const pwHidden    = document.getElementById('current_password');
+
+                    const overlay     = document.getElementById('pwModalOverlay');
+                    const pwInput     = document.getElementById('pwModalInput');
+                    const pwError     = document.getElementById('pwModalError');
+                    const btnCancel   = document.getElementById('pwModalCancel');
+                    const btnConfirm  = document.getElementById('pwModalConfirm');
+
+                    let pendingSubmit = false;
+
+                    form.addEventListener('submit', function (e) {
+                        if (pendingSubmit) return; // password already collected — let it through
+
+                        const emailChanged    = emailInput.value.trim() !== originalEmail;
+                        const usernameChanged = userInput.value.trim()  !== originalUsername;
+
+                        if (emailChanged || usernameChanged) {
+                            e.preventDefault();
+                            openModal();
+                        }
+                    });
+
+                    function openModal() {
+                        pwInput.value = '';
+                        pwError.textContent = '';
+                        overlay.classList.add('active');
+                        pwInput.focus();
+                    }
+
+                    function closeModal() {
+                        overlay.classList.remove('active');
+                        pwHidden.value = '';
+                    }
+
+                    btnCancel.addEventListener('click', closeModal);
+
+                    overlay.addEventListener('click', function (e) {
+                        if (e.target === overlay) closeModal();
+                    });
+
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+                        if (e.key === 'Enter'  && overlay.classList.contains('active')) confirmAndSubmit();
+                    });
+
+                    btnConfirm.addEventListener('click', confirmAndSubmit);
+
+                    function confirmAndSubmit() {
+                        const pw = pwInput.value;
+                        if (!pw) {
+                            pwError.textContent = 'Please enter your password.';
+                            pwInput.focus();
+                            return;
+                        }
+                        pwHidden.value = pw;
+                        pendingSubmit = true;
+                        overlay.classList.remove('active');
+                        form.submit();
+                    }
+                })();
+
+                function togglePwModal() {
+                    const input = document.getElementById('pwModalInput');
+                    const btn   = document.getElementById('pwModalEyeBtn');
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    btn.innerHTML = isHidden ? '&#128683;' : '&#128065;';
+                }
+                </script>
             <?php endif; ?>
 
-            <a href="change_password.php" class="profile-back">Change Password</a>
-            <a href="profile.php" class="profile-back" style="margin-left: 10px;">Back to Profile</a>
+            <!-- <a href="change_password.php" class="profile-back">Change Password</a> -->
         </div>
     </div>
 </body>

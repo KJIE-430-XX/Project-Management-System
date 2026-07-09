@@ -220,6 +220,29 @@ function lineClass(int $afterStep, int $current): string {
             background: none;
             color: #C084FC;
         }
+        /* Password eye-toggle */
+        .pw-input-wrap {
+            position: relative;
+        }
+        .pw-input-wrap input {
+            width: 100%;
+            padding-right: 40px;
+            box-sizing: border-box;
+        }
+        .pw-eye-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748B;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .pw-eye-btn:hover { color: #A855F7; }
     </style>
 </head>
 <body>
@@ -345,26 +368,32 @@ function lineClass(int $afterStep, int $current): string {
 
                 <div class="form-group">
                     <label for="new_password">New Password:</label>
-                    <input
-                        type="password"
-                        id="new_password"
-                        name="new_password"
-                        placeholder="At least 6 characters"
-                        required
-                        autofocus
-                    >
+                    <div class="pw-input-wrap">
+                        <input
+                            type="password"
+                            id="new_password"
+                            name="new_password"
+                            placeholder="At least 6 characters"
+                            required
+                            autofocus
+                        >
+                        <button type="button" class="pw-eye-btn" onclick="togglePw('new_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                    </div>
                     <span class="hint">Minimum 6 characters.</span>
                 </div>
 
                 <div class="form-group">
                     <label for="confirm_password">Confirm Password:</label>
-                    <input
-                        type="password"
-                        id="confirm_password"
-                        name="confirm_password"
-                        placeholder="Re-enter your new password"
-                        required
-                    >
+                    <div class="pw-input-wrap">
+                        <input
+                            type="password"
+                            id="confirm_password"
+                            name="confirm_password"
+                            placeholder="Re-enter your new password"
+                            required
+                        >
+                        <button type="button" class="pw-eye-btn" onclick="togglePw('confirm_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                    </div>
                     <span class="hint" id="match-hint" style="display:none; color:#F87171;">Passwords do not match.</span>
                 </div>
 
@@ -434,6 +463,14 @@ function lineClass(int $afterStep, int $current): string {
             }
         });
     });
+
+    // ── Password eye-toggle ────────────────────────
+    function togglePw(id, btn) {
+        const input = document.getElementById(id);
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        btn.innerHTML = isHidden ? '&#128683;' : '&#128065;';
+    }
     </script>
 </body>
 </html>

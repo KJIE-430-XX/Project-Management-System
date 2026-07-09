@@ -149,6 +149,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .profile-back:hover {
             background-color: #C084FC;
         }
+
+        /* Password eye-toggle */
+        .pw-input-wrap {
+            position: relative;
+            max-width: 320px;
+        }
+        .pw-input-wrap input {
+            max-width: 100%;
+            width: 100%;
+            padding-right: 40px;
+        }
+        .pw-eye-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748B;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        .pw-eye-btn:hover { color: #A855F7; }
     </style>
 </head>
 <body>
@@ -157,8 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1><span class="pro-text">Pro</span><span class="manage-text">Manage</span></h1>
             <p class="dashboard-subtitle">Update your password</p>
             <div class="header-actions">
-                <a href="profile.php" class="index-btn">← Back to Profile</a>
-                <a href="logout.php" class="logout-btn">Logout</a>
+                <!-- <a href="profile.php" class="index-btn">← Back to Profile</a>
+                <a href="logout.php" class="logout-btn">Logout</a> -->
             </div>
         </div>
 
@@ -172,21 +197,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
                 <div class="form-group">
                     <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" required>
+                    <div class="pw-input-wrap">
+                        <input type="password" id="current_password" name="current_password" required>
+                        <button type="button" class="pw-eye-btn" onclick="togglePw('current_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" required>
+                    <div class="pw-input-wrap">
+                        <input type="password" id="new_password" name="new_password" required>
+                        <button type="button" class="pw-eye-btn" onclick="togglePw('new_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <div class="pw-input-wrap">
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <button type="button" class="pw-eye-btn" onclick="togglePw('confirm_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                    </div>
                 </div>
                 <button type="submit" class="submit-btn">Update Password</button>
             </form>
 
-            <a href="profile.php" class="profile-back">Back to Profile</a>
+            <a href="profile.php" class="profile-back">Cancel</a>
         </div>
     </div>
+
+    <script>
+    function togglePw(id, btn) {
+        const input = document.getElementById(id);
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        btn.innerHTML = isHidden
+            ? '&#128683;'  /* eye-slash */
+            : '&#128065;'; /* eye */
+    }
+    </script>
 </body>
 </html>

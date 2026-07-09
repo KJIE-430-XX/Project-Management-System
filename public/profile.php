@@ -152,13 +152,18 @@ if ($conn === null) {
             <h1><span class="pro-text">Pro</span><span class="manage-text">Manage</span></h1>
             <p class="dashboard-subtitle">Your account details</p>
             <div class="header-actions">
-                <a href="dashboard.php" class="index-btn">⌂ Dashboard</a>
-                <a href="logout.php" class="logout-btn">Logout</a>
+                <a href="dashboard.php" class="index-btn">Back</a>
             </div>
         </div>
 
         <div class="profile-card">
             <h2>My Profile</h2>
+            <?php
+            if (isset($_SESSION['success'])) {
+                echo '<div class="message success">' . htmlspecialchars($_SESSION['success']) . '</div>';
+                unset($_SESSION['success']);
+            }
+            ?>
             <?php if (!empty($profile_error)): ?>
                 <p><?php echo htmlspecialchars($profile_error); ?></p>
             <?php else: ?>
@@ -175,8 +180,6 @@ if ($conn === null) {
                 <h3>Security</h3>
                 <a href="change_password.php" class="submit-btn" style="display: inline-block; text-decoration: none;">Change Password</a>
             </div>
-
-            <a href="dashboard.php" class="profile-back">Back to Dashboard</a>
         </div>
     </div>
 </body>

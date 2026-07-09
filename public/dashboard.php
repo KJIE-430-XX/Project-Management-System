@@ -163,6 +163,7 @@ foreach ($projects as $project) {
                 </div>
                 <div class="user-dropdown-menu">
                     <a href="profile.php">👤 My Profile</a>
+                    <a href="logout.php">🚪 Logout</a>
                 </div>
             </div>
 
@@ -180,10 +181,6 @@ foreach ($projects as $project) {
 
                 <a href="trash.php" class="trash-btn">
                     Trash<?php echo $trash_count > 0 ? ' (' . $trash_count . ')' : ''; ?>
-                </a>
-
-                <a href="logout.php" class="logout-btn">
-                    Logout
                 </a>
 
             </div>
