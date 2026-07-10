@@ -52,12 +52,28 @@ if ($conn === null) {
             color: #F8FAFC;
         }
 
-        .profile-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
             color: #E2E8F0;
+        }
+
+        .profile-table tr {
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .profile-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .profile-table td {
+            padding: 12px 0;
+        }
+
+        .profile-table td.profile-label {
+            font-weight: 600;
+            color: #94A3B8;
+            width: 160px;
         }
 
         .profile-label {
@@ -167,11 +183,25 @@ if ($conn === null) {
             <?php if (!empty($profile_error)): ?>
                 <p><?php echo htmlspecialchars($profile_error); ?></p>
             <?php else: ?>
-                <div class="profile-row"><span class="profile-label">Name</span><span><?php echo htmlspecialchars($user['name']); ?></span></div>
-                <div class="profile-row"><span class="profile-label">Email</span><span><?php echo htmlspecialchars($user['email']); ?></span></div>
-                <div class="profile-row"><span class="profile-label">Username</span><span><?php echo htmlspecialchars($user['username']); ?></span></div>
-                <div class="profile-row"><span class="profile-label">Member Since</span><span><?php echo date('M d, Y', strtotime($user['created_at'])); ?></span></div>
-                <div class="profile-row" style="border-bottom:none; justify-content:flex-start; gap: 10px; margin-top: 20px;">
+                <table class="profile-table">
+                    <tr>
+                        <td class="profile-label">Name</td>
+                        <td><?php echo htmlspecialchars($user['name']); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="profile-label">Email</td>
+                        <td><?php echo htmlspecialchars($user['email']); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="profile-label">Username</td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="profile-label">Member Since</td>
+                        <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
+                    </tr>
+                </table>
+                <div style="margin-top: 20px;">
                     <a href="profile_manage.php" class="submit-btn" style="display: inline-block; text-decoration: none;">Edit Profile</a>
                 </div>
             <?php endif; ?>

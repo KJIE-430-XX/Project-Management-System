@@ -128,8 +128,8 @@ if (isset($_SESSION['success'])) {
               <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
           </div>
           <div class="user-dropdown-menu">
-              <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> My Profile</a>
-              <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+              <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> <strong>My Profile</strong></a>
+              <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> <strong>Logout</strong></a>
           </div>
       </div>
     </div>
