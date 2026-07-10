@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 session_start();
 
 header('Content-Type: application/json');
@@ -82,7 +86,7 @@ $check->close();
 $stmt = $conn->prepare("
 SELECT
     h.id,
-    h.created_at,
+    h.changed_at,
 
     oldStatus.name AS old_status,
 
@@ -103,7 +107,7 @@ LEFT JOIN users u
 
 WHERE h.task_id = ?
 
-ORDER BY h.created_at DESC
+ORDER BY h.changed_at DESC
 ");
 
 $stmt->bind_param(

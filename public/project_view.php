@@ -811,7 +811,7 @@ function renderHistory(history) {
 
                 <strong>${escapeHtml(item.changed_by)}</strong>
 
-                <span>${escapeHtml(item.created_at)}</span>
+                <span>${escapeHtml(item.changed_at)}</span>
 
             </div>
 
