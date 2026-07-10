@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Default select "Uncategorized" (null workspace)
     selectWorkspace('null');
+    
+    // Initialize User Dropdown
+    initUserDropdown();
 });
 
 let currentWorkspaceId = 'null';
@@ -251,4 +254,25 @@ function showToast(message, isError = false) {
         toast.style.opacity = '0';
         toast.style.bottom = '-50px';
     }, 3000);
+}
+
+// ----------------------------------------------------
+// User Dropdown Menu
+// ----------------------------------------------------
+function initUserDropdown() {
+    const toggle = document.querySelector('.user-dropdown-toggle');
+    const menu = document.querySelector('.user-dropdown-menu');
+    
+    if (toggle && menu) {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+    }
 }

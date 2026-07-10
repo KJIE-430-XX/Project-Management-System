@@ -1047,4 +1047,56 @@ a:hover {
 
 #pvAddCommentBtn{
     align-self:flex-end;
+/* ---------- User Dropdown ---------- */
+.user-dropdown-container {
+    position: relative;
+    z-index: 100;
+}
+
+.user-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.user-dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 160px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.user-dropdown-container.show .user-dropdown-menu,
+.user-dropdown-menu.show {
+    display: block;
+}
+
+.user-dropdown-menu a {
+    display: block;
+    padding: 12px 16px;
+    color: #F8FAFC;
+    text-decoration: none;
+    font-size: 14px;
+    text-align: left;
+    transition: background 0.2s;
+}
+
+.user-dropdown-menu a:hover {
+    background-color: #374151;
 }

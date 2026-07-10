@@ -12,10 +12,19 @@ require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/includes/project_lifecycle.php';
 $user_id = $_SESSION['user_id'];
 
+// Fetch current user details
+$user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$user_stmt->bind_param("i", $user_id);
+$user_stmt->execute();
+$current_user = $user_stmt->get_result()->fetch_assoc();
+$user_stmt->close();
+
 purgeExpiredTrashedProjects($conn);
 
 $success_msg = $_SESSION['success'] ?? '';
 unset($_SESSION['success']);
+$projects = [];
+$project_stats = [];
 
 // Fetch user's projects (where they are a member or owner)
 $projects_sql = "
@@ -126,6 +135,8 @@ foreach ($projects as $project) {
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
 </head>
 
 <body>
@@ -144,6 +155,20 @@ foreach ($projects as $project) {
 
         <div class="header">
 
+            <div class="user-dropdown-container">
+                <div class="user-dropdown-toggle">
+                    <div style="display: flex; flex-direction: column; text-align: left; justify-content: center;">
+                        <span class="user-name" style="font-weight: 600; font-size: 14px; line-height: 1.2;"><?php echo htmlspecialchars($current_user['name'] ?? 'Unknown User'); ?></span>
+                        <span class="user-email" style="font-size: 12px; opacity: 0.7; line-height: 1.2;"><?php echo htmlspecialchars($current_user['email'] ?? ''); ?></span>
+                    </div>
+                    <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
+                </div>
+                <div class="user-dropdown-menu">
+                    <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> <strong>My Profile</strong></a>
+                    <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> <strong>Logout</strong></a>
+                </div>
+            </div>
+
             <h1><span class="pro-text">Pro</span><span class="manage-text">Manage</span></h1>
 
             <p class="dashboard-subtitle">
@@ -158,10 +183,6 @@ foreach ($projects as $project) {
 
                 <a href="trash.php" class="trash-btn">
                     Trash<?php echo $trash_count > 0 ? ' (' . $trash_count . ')' : ''; ?>
-                </a>
-
-                <a href="logout.php" class="logout-btn">
-                    Logout
                 </a>
 
             </div>
@@ -306,6 +327,22 @@ foreach ($projects as $project) {
                                     <?php if ($project['due_date']): ?>
                                         <div class="project-due">Due: <?php echo date('M d, Y', strtotime($project['due_date'])); ?></div>
                                     <?php endif; ?>
+                                    
+                                    <?php 
+                                    $p_total_t = $project_stats[$project['id']]['task_count'] ?? 0;
+                                    $p_comp_t = $project_stats[$project['id']]['completed_count'] ?? 0;
+                                    $p_percent = $p_total_t > 0 ? round(($p_comp_t / $p_total_t) * 100, 1) : 0;
+                                    ?>
+                                    <div class="project-progress-container">
+                                        <div class="project-progress-bar-wrapper">
+                                            <div class="project-progress-bar-fill" style="width: <?php echo $p_percent; ?>%;"></div>
+                                        </div>
+                                        <div class="project-progress-text">
+                                            <span>Progress</span>
+                                            <span><?php echo $p_percent; ?>% (<?php echo $p_comp_t; ?>/<?php echo $p_total_t; ?>)</span>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="project-actions-row">
                                         <?php if ($is_owner): ?>
                                             <button type="button" class="project-action-btn" onclick="openProjectEditModal(event, <?php echo (int)$project['id']; ?>)">✎</button>
