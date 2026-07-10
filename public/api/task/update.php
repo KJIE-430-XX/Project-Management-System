@@ -47,6 +47,7 @@ $taskStmt = $conn->prepare("
         t.id,
         t.project_id,
         t.status_id,
+        t.created_by,
         p.due_date AS project_due_date
     FROM tasks t
 
@@ -57,9 +58,8 @@ $taskStmt = $conn->prepare("
         ON pm.project_id = t.project_id
         AND pm.user_id = ?
 
-    INNER JOIN task_assignees ta
+    LEFT JOIN task_assignees ta
         ON ta.task_id = t.id
-        AND ta.user_id = ?
 
     WHERE
         t.id = ?
@@ -68,8 +68,7 @@ $taskStmt = $conn->prepare("
     LIMIT 1
 ");
 $taskStmt->bind_param(
-    "iii",
-    $userId,
+    "ii",
     $userId,
     $taskId
 );
@@ -82,7 +81,33 @@ if (!$task) {
     echo json_encode(['success' => false, 'message' => 'Only the assigned user can edit this task.']);
     exit;
 }
+$isOwner = ((int)$task['created_by'] === $userId);
 
+$isAssignee = false;
+
+$checkStmt = $conn->prepare("
+    SELECT 1
+    FROM task_assignees
+    WHERE task_id = ?
+    AND user_id = ?
+    LIMIT 1
+");
+
+$checkStmt->bind_param("ii", $taskId, $userId);
+$checkStmt->execute();
+
+$isAssignee = $checkStmt->get_result()->num_rows > 0;
+
+$checkStmt->close();
+
+if (!$isOwner && !$isAssignee) {
+    http_response_code(403);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Only the project owner or assignee can edit this task.'
+    ]);
+    exit;
+}
 if ($dueDate === '') {
     $dueDate = null;
 } elseif ($task['project_due_date'] !== null && strtotime($dueDate) > strtotime($task['project_due_date'])) {
