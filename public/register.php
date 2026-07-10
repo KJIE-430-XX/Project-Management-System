@@ -74,6 +74,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Register</title>
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/auth.css">
+    <style>
+        .pw-input-wrap {
+            position: relative;
+        }
+        .pw-input-wrap input {
+            width: 100%;
+            padding-right: 40px;
+            box-sizing: border-box;
+        }
+        .pw-eye-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748B;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .pw-eye-btn:hover { color: #A855F7; }
+    </style>
 </head>
 <body>
     <div class="auth-container">
@@ -108,12 +132,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <div class="pw-input-wrap">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="pw-eye-btn" onclick="togglePw('password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="confirm_password">Confirm Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <div class="pw-input-wrap">
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <button type="button" class="pw-eye-btn" onclick="togglePw('confirm_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                </div>
             </div>
 
             <button type="submit">Register</button>
@@ -123,5 +153,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             Already have an account? <a href="login.php">Login here</a>
         </div>
     </div>
+    <script>
+    function togglePw(id, btn) {
+        const input = document.getElementById(id);
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        btn.innerHTML = isHidden ? '&#128683;' : '&#128065;';
+    }
+    </script>
 </body>
 </html>
