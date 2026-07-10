@@ -16,9 +16,9 @@ This system is called ‘ProManage’, which represents organizing, assigning, a
 
 | Role | Team Member | Responsibilities |
 |------|-------------|------------------|
-| Product Owner & Scrum Master | CHOW KAI JIE | Duplicate latest source code into new repository, planning for the Scrum, allocate the job scope to team members |
-| Developer 1 | CHEW SEE YUAN | TBC |
-| Developer 2 | GUO RUNTING | TBC |
+| Product Owner & Team Leader | CHOW KAI JIE | Duplicate latest source code into new repository, develop enhancement system architecture diagram, manage the Kanban board and backlog and involve into development team |
+| Developer 1 | CHEW SEE YUAN | Part of the core development team; pull assigned tasks from the Kanban board backlog, implement features, and conduct local testing. |
+| Developer 2 | GUO RUNTING | Part of the core development team; pull assigned tasks from the Kanban board backlog, implement features, and conduct local testing. |
 
 ## Technologies Used
 
@@ -77,28 +77,40 @@ The project is built using the following technologies:
 
 This project uses **XAMPP** to provide a local development environment with Apache, PHP, and MySQL support.
 
-## SCRUM Development Iterations
+## Agile Kanban Development Phases
 
-### Iteration 1: Week 1 ()
-**Project Move Place and Planning**
+### Phase 1: Architectural Blueprinting & Repository Setup
+- Finalized the refined system architecture diagram for Version 2 features.
+- Initialized the team Kanban board and loaded the product backlog with cards based on user stories.
+- Duplicated the baseline code from Assignment 1 into this clean, dedicated repository.
 
+### Phase 2: Kanban-Driven Execution & Pull Request (PR) Merging
+- Pulled tasks asynchronously from the "To Do" column into "In Progress" according to personal availability.
+- Implemented core system features via isolated feature branches and submitted Pull Requests.
+- Conducted local XAMPP testing, addressed mid-way feedback regarding progress bars and project editing, and merged stable code into `main`.
 
-### Iteration 2: Week 2 ()
-**Create and Read Features**
+### Phase 3: System Stabilization, Verification & Deployment
+- Conducted full end-to-end testing across the unified system to guarantee a bug-free build.
+- Documented requirements traceability and finalized technical reporting.
+- Executed final system deployment to the production environment.
 
 
 ## Features
-**Core Feature**
-Project Management System
-- Create and manage projects
-- Add members to project
 
-Task Management System
-- Create tasks under project
-- Set priority, status and deadline to the task
-- Assign tasks to project's member
+### 🏢 Workspaces & Folder Organization
+- Create custom user workspaces to group and classify multiple project records.
+- Seamlessly transition project views between Grid View and List View formats.
 
-**Supporting Feature**
-User Authentication
-- Login
-- Register
+### 📋 Task Board & Lifecycle Control
+- Create, live-edit, and delete individual tasks directly from an interactive right-side drawer overlay.
+- Keep boards clean with a dedicated completed tasks area that hides finished items by default unless expanded.
+- Visual progress tracking bars computing complete-to-total ratios, exact counts, and progress percentages.
+
+### 💬 Live Collaboration & Alerts
+- Direct task-level messaging feeds enabling seamless communication between Project PIC and members.
+- Visual red badge notification indicators on task cards highlighting unread comment updates.
+
+### 🛡️ Data Protection & Account Security
+- Two-stage deletion protection: Soft-delete projects safely to a Trash View with options to restore or permanently hard-delete records.
+- Account profile personalization editor (update display name, email, and credentials).
+- Secure account entry recovery utilizing a temporary, valid OTP via email verification.
