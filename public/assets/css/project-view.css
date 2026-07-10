@@ -1047,6 +1047,7 @@ a:hover {
 
 #pvAddCommentBtn{
     align-self:flex-end;
+}
 /* ---------- User Dropdown ---------- */
 .user-dropdown-container {
     position: relative;
