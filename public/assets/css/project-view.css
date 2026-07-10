@@ -994,15 +994,16 @@ a:hover {
 .pv-comment-card{
     background:#1F2937;
     border:1px solid rgba(255,255,255,.08);
-    border-radius:10px;
-    padding:12px;
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
 }
 
 .pv-comment-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:8px;
+    margin-bottom:6px;
 }
 
 .pv-comment-header strong{
@@ -1019,7 +1020,8 @@ a:hover {
     color:#E5E7EB;
     white-space:pre-wrap;
     word-break:break-word;
-    line-height:1.6;
+    line-height:1.45;
+    font-size:13px;
 }
 
 .pv-comment-editor{
