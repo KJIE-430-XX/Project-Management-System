@@ -500,9 +500,48 @@ if (isset($_SESSION['success'])) {
         </div>
 
         <div class="pv-task-drawer-footer">
-          <button type="submit" class="btn btn-primary" id="pvSaveTaskBtn">Save Changes</button>
+    <button type="submit" class="btn btn-primary" id="pvSaveTaskBtn">
+        Save Changes
+    </button>
+</div>
+
+</form>
+
+<hr class="pv-comments-divider">
+
+<div class="pv-comments-section">
+
+    <h4 class="pv-comments-title">
+        💬 Comments
+    </h4>
+
+    <div id="pvCommentsList" class="pv-comments-list">
+
+        <div class="pv-comments-empty">
+            No comments yet.
         </div>
-      </form>
+
+    </div>
+
+    <div class="pv-comment-editor">
+
+        <textarea
+            id="pvCommentInput"
+            placeholder="Write a comment..."
+            rows="3"></textarea>
+
+        <button
+            type="button"
+            id="pvAddCommentBtn"
+            class="btn btn-primary">
+
+            Add Comment
+
+        </button>
+
+    </div>
+
+</div>
     </aside>
 
   </div>
@@ -536,6 +575,9 @@ if (isset($_SESSION['success'])) {
     const taskAssigneeInput = document.getElementById('pvTaskAssignee');
     const deleteTaskBtn = document.getElementById('pvDeleteTaskBtn');
     const closeTaskDrawerBtn = document.getElementById('pvCloseTaskDrawerBtn');
+    const commentsList = document.getElementById('pvCommentsList');
+    const commentInput = document.getElementById('pvCommentInput');
+    const addCommentBtn = document.getElementById('pvAddCommentBtn');
     let selectedTaskId = null;
 
     // Restore saved preference
@@ -585,7 +627,9 @@ if (isset($_SESSION['success'])) {
     if (taskDrawerForm) {
       taskDrawerForm.addEventListener('submit', saveTaskFromDrawer);
     }
-
+    if (addCommentBtn) {
+    addCommentBtn.addEventListener('click', submitComment);
+    }
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
         closeTaskDrawer();
@@ -640,6 +684,8 @@ if (isset($_SESSION['success'])) {
       document.body.classList.add('pv-drawer-open');
       taskTitleInput.focus();
       taskTitleInput.select();
+
+      loadComments(selectedTaskId);
     }
 
     function closeTaskDrawer() {
@@ -653,7 +699,136 @@ if (isset($_SESSION['success'])) {
       document.body.classList.remove('pv-drawer-open');
       selectedTaskId = null;
     }
+async function loadComments(taskId) {
 
+    commentsList.innerHTML =
+        '<div class="pv-comments-empty">Loading...</div>';
+
+    try {
+
+        const response = await fetch(
+            'api/task/comments.php?task_id=' + encodeURIComponent(taskId)
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            renderComments(data.comments);
+
+        } else {
+
+            commentsList.innerHTML =
+                '<div class="pv-comments-empty">Unable to load comments.</div>';
+
+        }
+
+    } catch (e) {
+
+        commentsList.innerHTML =
+            '<div class="pv-comments-empty">Network error.</div>';
+
+    }
+
+}
+
+function renderComments(comments) {
+
+    if (!comments.length) {
+        commentsList.innerHTML =
+            '<div class="pv-comments-empty">No comments yet.</div>';
+        return;
+    }
+
+    commentsList.innerHTML = '';
+
+    comments.forEach(comment => {
+
+        const isOwnComment = comment.name === currentUserName;
+
+        commentsList.innerHTML += `
+            <div class="pv-comment-card${isOwnComment ? ' pv-comment-own' : ''}">
+                <div class="pv-comment-header">
+                    <strong>${comment.name}</strong>
+                    <span>${comment.created_at}</span>
+                </div>
+                <div class="pv-comment-body">
+                    ${escapeHtml(comment.comment)}
+                </div>
+            </div>
+        `;
+
+    });
+
+}
+function escapeHtml(text) {
+
+    const div = document.createElement('div');
+
+    div.textContent = text ?? '';
+
+    return div.innerHTML;
+
+}
+async function submitComment() {
+
+    if (!selectedTaskId) return;
+
+    const text = commentInput.value.trim();
+
+    if (text === '') return;
+
+    addCommentBtn.disabled = true;
+
+    try {
+
+        const response = await fetch(
+            'api/task/comments.php',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+
+                    task_id: selectedTaskId,
+
+                    comment: text,
+
+                    csrf_token: csrfToken
+
+                })
+
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            commentInput.value = '';
+
+            loadComments(selectedTaskId);
+
+            showToast('Comment added successfully.');
+
+        } else {
+
+            showToast(data.message || 'Unable to add comment.', 'error');
+
+        }
+
+    } catch (e) {
+
+        showToast('Network error.', 'error');
+
+    }
+
+    addCommentBtn.disabled = false;
+
+}
     function taskMatchesOpenDrawer(taskId) {
       return selectedTaskId && String(selectedTaskId) === String(taskId);
     }
@@ -946,6 +1121,7 @@ if (isset($_SESSION['success'])) {
 
     /* ===== Status Update ===== */
     const csrfToken = '<?php echo $csrf_token; ?>';
+    const currentUserName = <?php echo json_encode($current_user['name'] ?? ''); ?>;
 
     window.updateStatus = function(taskId, newStatusId, btnEl) {
       btnEl.disabled = true;

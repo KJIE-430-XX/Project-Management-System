@@ -247,7 +247,7 @@ a:hover {
     overflow: hidden;
 }
 
-.pv-completed-panel > summary {
+.pv-completed-panel>summary {
     list-style: none;
     cursor: pointer;
     padding: 14px 18px;
@@ -261,27 +261,27 @@ a:hover {
     border-bottom: 1px solid transparent;
 }
 
-.pv-completed-panel > summary::-webkit-details-marker {
+.pv-completed-panel>summary::-webkit-details-marker {
     display: none;
 }
 
-.pv-completed-panel > summary::after {
+.pv-completed-panel>summary::after {
     content: '▾';
     color: #A855F7;
     font-size: 14px;
     transition: transform 0.2s ease;
 }
 
-.pv-completed-panel[open] > summary {
+.pv-completed-panel[open]>summary {
     border-bottom-color: rgba(168, 85, 247, 0.12);
 }
 
-.pv-completed-panel[open] > summary::after {
+.pv-completed-panel[open]>summary::after {
     transform: rotate(180deg);
 }
 
-.pv-completed-panel > .pv-tasks-grid,
-.pv-completed-panel > .pv-tasks-list {
+.pv-completed-panel>.pv-tasks-grid,
+.pv-completed-panel>.pv-tasks-list {
     padding: 16px;
 }
 
@@ -951,6 +951,110 @@ a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: #4B5563;
+}
+
+/* ===========================
+   Task Comments
+=========================== */
+
+.pv-comments-divider {
+    margin: 24px 0 18px;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.pv-comments-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pv-comments-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #F9FAFB;
+    margin: 0;
+}
+
+.pv-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.pv-comments-empty {
+    color: #9CA3AF;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+}
+
+.pv-comment-card {
+    background: #1F2937;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+
+.pv-comment-card.pv-comment-own {
+    background-color: #341f68;
+}
+
+.pv-comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.pv-comment-header strong {
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+.pv-comment-header span {
+    color: #9CA3AF;
+    font-size: 12px;
+}
+
+.pv-comment-body {
+    color: #E5E7EB;
+    word-break: break-word;
+    line-height: 1.5;
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+}
+
+.pv-comment-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pv-comment-editor textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    background: #111827;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.pv-comment-editor textarea:focus {
+    outline: none;
+    border-color: #8B5CF6;
+}
+
+#pvAddCommentBtn {
+    align-self: flex-end;
 }
 
 /* ---------- User Dropdown ---------- */
