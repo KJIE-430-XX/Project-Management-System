@@ -126,11 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="form-group">
-                    <label>Invite Members</label>
+                    <label>Add Members</label>
                     <div class="dropdown-wrapper" id="memberDropdown">
                         <div class="dropdown-trigger" id="memberTrigger">
-                            <span class="trigger-text" id="memberTriggerText">– Select –</span>
-                            <span class="trigger-arrow">▼</span>
+                            <!-- <span class="trigger-text" id="memberTriggerText">– Select –</span>
+                            <span class="trigger-arrow">▼</span> -->
                         </div>
                         <div class="dropdown-menu-list" id="memberMenuList">
                             <?php if (count($available_users) > 0): ?>
