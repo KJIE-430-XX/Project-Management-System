@@ -83,37 +83,89 @@ $check->close();
 |--------------------------------------------------------------------------
 */
 
-$stmt = $conn->prepare("
-SELECT
-    h.id,
-    h.changed_at,
+$editHistoryTableCheck = $conn->query("SHOW TABLES LIKE 'task_edit_history'");
+$hasEditHistoryTable = $editHistoryTableCheck && $editHistoryTableCheck->num_rows > 0;
 
-    oldStatus.name AS old_status,
+if ($editHistoryTableCheck instanceof mysqli_result) {
+    $editHistoryTableCheck->free();
+}
 
-    newStatus.name AS new_status,
+if ($hasEditHistoryTable) {
+    $stmt = $conn->prepare("
+    SELECT *
+    FROM (
+        SELECT
+            h.id,
+            h.changed_at,
+            'status' AS event_type,
+            NULL AS field_name,
+            NULL AS old_value,
+            NULL AS new_value,
+            oldStatus.name AS old_status,
+            newStatus.name AS new_status,
+            u.name AS changed_by
+        FROM task_status_history h
+        LEFT JOIN status oldStatus
+            ON oldStatus.id = h.old_status_id
+        LEFT JOIN status newStatus
+            ON newStatus.id = h.new_status_id
+        LEFT JOIN users u
+            ON u.id = h.changed_by
+        WHERE h.task_id = ?
 
-    u.name AS changed_by
+        UNION ALL
 
-FROM task_status_history h
+        SELECT
+            eh.id,
+            eh.changed_at,
+            'field_edit' AS event_type,
+            eh.field_name,
+            eh.old_value,
+            eh.new_value,
+            NULL AS old_status,
+            NULL AS new_status,
+            u.name AS changed_by
+        FROM task_edit_history eh
+        LEFT JOIN users u
+            ON u.id = eh.changed_by
+        WHERE eh.task_id = ?
+    ) history
+    ORDER BY history.changed_at DESC, history.id DESC
+    ");
 
-LEFT JOIN status oldStatus
-    ON oldStatus.id = h.old_status_id
+    $stmt->bind_param(
+        "ii",
+        $taskId,
+        $taskId
+    );
+} else {
+    $stmt = $conn->prepare("
+    SELECT
+        h.id,
+        h.changed_at,
+        'status' AS event_type,
+        NULL AS field_name,
+        NULL AS old_value,
+        NULL AS new_value,
+        oldStatus.name AS old_status,
+        newStatus.name AS new_status,
+        u.name AS changed_by
+    FROM task_status_history h
+    LEFT JOIN status oldStatus
+        ON oldStatus.id = h.old_status_id
+    LEFT JOIN status newStatus
+        ON newStatus.id = h.new_status_id
+    LEFT JOIN users u
+        ON u.id = h.changed_by
+    WHERE h.task_id = ?
+    ORDER BY h.changed_at DESC, h.id DESC
+    ");
 
-LEFT JOIN status newStatus
-    ON newStatus.id = h.new_status_id
-
-LEFT JOIN users u
-    ON u.id = h.changed_by
-
-WHERE h.task_id = ?
-
-ORDER BY h.changed_at DESC
-");
-
-$stmt->bind_param(
-    "i",
-    $taskId
-);
+    $stmt->bind_param(
+        "i",
+        $taskId
+    );
+}
 
 $stmt->execute();
 

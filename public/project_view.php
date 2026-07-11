@@ -836,13 +836,31 @@ function renderHistory(history) {
         return;
     }
 
+    function formatHistoryMessage(item) {
+        if (item.event_type === 'field_edit') {
+            const fieldLabels = {
+                title: 'Task Title',
+                description: 'Description',
+                priority: 'Priority',
+                due_date: 'Due Date',
+                assignee: 'Assignee'
+            };
+            const fieldLabel = fieldLabels[item.field_name] || 'Task Detail';
+            const newValue = escapeHtml(item.new_value ?? '');
+
+            return `Edited ${escapeHtml(fieldLabel)} to <strong>"${newValue}"</strong>`;
+        }
+
+        return `Changed status from <strong>${escapeHtml(item.old_status || 'Unknown')}</strong> → <strong>${escapeHtml(item.new_status || 'Unknown')}</strong>`;
+    }
+
     historyList.innerHTML = history.map(item => `
 
         <div class="pv-history-item">
 
             <div class="pv-history-header">
 
-                <strong>${escapeHtml(item.changed_by)}</strong>
+                <strong>${escapeHtml(item.changed_by || 'System')}</strong>
 
                 <span>${escapeHtml(item.changed_at)}</span>
 
@@ -850,13 +868,7 @@ function renderHistory(history) {
 
             <div class="pv-history-body">
 
-                Changed status from
-
-                <strong>${escapeHtml(item.old_status)}</strong>
-
-                →
-
-                <strong>${escapeHtml(item.new_status)}</strong>
+                ${formatHistoryMessage(item)}
 
             </div>
 

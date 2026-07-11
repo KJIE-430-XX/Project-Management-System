@@ -128,6 +128,21 @@ CREATE TABLE IF NOT EXISTS task_status_history (
   FOREIGN KEY (changed_by)    REFERENCES users(id)
 );
 -- ============================================================
+-- Task detail edit history
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS task_edit_history (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  task_id    INT NOT NULL,
+  field_name VARCHAR(50) NOT NULL,
+  old_value  TEXT,
+  new_value  TEXT,
+  changed_by INT NOT NULL,
+  changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (task_id)    REFERENCES tasks(id) ON DELETE CASCADE,
+  FOREIGN KEY (changed_by) REFERENCES users(id)
+);
+-- ============================================================
 -- Task Comments
 -- ============================================================
 
