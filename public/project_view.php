@@ -12,6 +12,13 @@ require_once __DIR__ . '/includes/project_lifecycle.php';
 $project_id = (int)($_GET['project_id'] ?? 0);
 $user_id = $_SESSION['user_id'];
 
+// Fetch current user details
+$user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$user_stmt->bind_param("i", $user_id);
+$user_stmt->execute();
+$current_user = $user_stmt->get_result()->fetch_assoc();
+$user_stmt->close();
+
 // 🔥 SECURITY FIX: Verify user is a member of the project before loading it
 $p_stmt = $conn->prepare("
     SELECT p.* 
@@ -103,9 +110,29 @@ if (isset($_SESSION['success'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?php echo htmlspecialchars($project['name']); ?> – ProManage</title>
   <link rel="stylesheet" href="assets/css/project-view.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
   <div class="pv-container">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <a href="dashboard.php" style="text-decoration: none; font-size: 24px; font-weight: bold;">
+          <span style="color: #A855F7;">Pro</span><span style="color: #FFFFFF;">Manage</span>
+      </a>
+      <div class="user-dropdown-container">
+          <div class="user-dropdown-toggle">
+              <div style="display: flex; flex-direction: column; text-align: left; justify-content: center;">
+                  <span class="user-name" style="font-weight: 600; font-size: 14px; line-height: 1.2;"><?php echo htmlspecialchars($current_user['name'] ?? 'Unknown User'); ?></span>
+                  <span class="user-email" style="font-size: 12px; opacity: 0.7; line-height: 1.2;"><?php echo htmlspecialchars($current_user['email'] ?? ''); ?></span>
+              </div>
+              <span style="font-size: 10px; margin-left: 4px; color: #94A3B8;">▼</span>
+          </div>
+          <div class="user-dropdown-menu">
+              <a href="profile.php"><i class="fa fa-user" aria-hidden="true"></i> <strong>My Profile</strong></a>
+              <a href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i> <strong>Logout</strong></a>
+          </div>
+      </div>
+    </div>
 
     <!-- Header -->
     <div class="pv-header">
@@ -579,6 +606,21 @@ if (isset($_SESSION['success'])) {
     btnGrid.addEventListener('click', () => switchView('grid'));
     btnList.addEventListener('click', () => switchView('list'));
 
+    // User Dropdown logic
+    const toggle = document.querySelector('.user-dropdown-toggle');
+    const menu = document.querySelector('.user-dropdown-menu');
+    if (toggle && menu) {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+    }
+
     document.querySelectorAll('.pv-task-openable').forEach(taskEl => {
       taskEl.addEventListener('click', event => {
         if (event.target.closest('button, a, input, select, textarea, label, summary')) {
@@ -713,35 +755,26 @@ async function loadComments(taskId) {
 function renderComments(comments) {
 
     if (!comments.length) {
-
         commentsList.innerHTML =
             '<div class="pv-comments-empty">No comments yet.</div>';
-
         return;
-
     }
 
     commentsList.innerHTML = '';
 
     comments.forEach(comment => {
 
+        const isOwnComment = comment.name === currentUserName;
+
         commentsList.innerHTML += `
-            <div class="pv-comment-card">
-
+            <div class="pv-comment-card${isOwnComment ? ' pv-comment-own' : ''}">
                 <div class="pv-comment-header">
-
                     <strong>${comment.name}</strong>
-
                     <span>${comment.created_at}</span>
-
                 </div>
-
                 <div class="pv-comment-body">
-
                     ${escapeHtml(comment.comment)}
-
                 </div>
-
             </div>
         `;
 
@@ -1183,6 +1216,7 @@ async function submitComment() {
 
     /* ===== Status Update ===== */
     const csrfToken = '<?php echo $csrf_token; ?>';
+    const currentUserName = <?php echo json_encode($current_user['name'] ?? ''); ?>;
 
     window.updateStatus = function(taskId, newStatusId, btnEl) {
       btnEl.disabled = true;
