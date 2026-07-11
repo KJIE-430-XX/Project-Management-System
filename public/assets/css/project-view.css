@@ -309,7 +309,7 @@ a:hover {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
-    z-index: 40;
+    z-index: 1040;
 }
 
 .pv-task-drawer-overlay.open {
@@ -328,7 +328,7 @@ a:hover {
     box-shadow: -20px 0 40px rgba(2, 6, 23, 0.45);
     transform: translateX(100%);
     transition: transform 0.28s ease;
-    z-index: 50;
+    z-index: 1050;
     display: flex;
     flex-direction: column;
     padding: 22px;
