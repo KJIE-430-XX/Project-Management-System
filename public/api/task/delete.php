@@ -37,22 +37,66 @@ if ($taskId <= 0) {
 }
 
 $taskStmt = $conn->prepare("
-    SELECT t.id, t.project_id
+    SELECT
+    t.id,
+    t.project_id,
+    t.created_by
     FROM tasks t
-    JOIN projects p ON p.id = t.project_id
-    JOIN project_members pm ON pm.project_id = t.project_id
-    WHERE t.id = ? AND pm.user_id = ? AND p.deleted_at IS NULL
+
+    INNER JOIN projects p
+        ON p.id = t.project_id
+
+    INNER JOIN project_members pm
+        ON pm.project_id = t.project_id
+        AND pm.user_id = ?
+        
+    WHERE
+        t.id = ?
+        AND p.deleted_at IS NULL
+
+    LIMIT 1
 ");
-$taskStmt->bind_param("ii", $taskId, $userId);
+$taskStmt->bind_param(
+    "ii",
+    $userId,
+    $taskId
+);
 $taskStmt->execute();
 $task = $taskStmt->get_result()->fetch_assoc();
 $taskStmt->close();
 
 if (!$task) {
     http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Task not found or unauthorized']);
+    echo json_encode(['success' => false, 'message' => 'Task not found or access denied.']);
     exit;
 }
+
+$isOwner = ((int)$task['created_by'] === $userId);
+
+$checkStmt = $conn->prepare("
+    SELECT 1
+    FROM task_assignees
+    WHERE task_id = ?
+    AND user_id = ?
+    LIMIT 1
+");
+
+$checkStmt->bind_param("ii", $taskId, $userId);
+$checkStmt->execute();
+
+$isAssignee = $checkStmt->get_result()->num_rows > 0;
+
+$checkStmt->close();
+
+if (!$isOwner && !$isAssignee) {
+    http_response_code(403);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Only the project owner or assignee can delete this task.'
+    ]);
+    exit;
+}
+
 
 try {
     $conn->begin_transaction();
