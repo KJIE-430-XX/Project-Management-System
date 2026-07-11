@@ -1110,3 +1110,56 @@ a:hover {
 .user-dropdown-menu a:hover {
     background-color: #374151;
 }
+
+/* ===========================
+   Activity History
+=========================== */
+
+.pv-history-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pv-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.pv-history-card {
+    background: #1F2937;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.pv-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pv-history-header strong {
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+.pv-history-header span {
+    color: #9CA3AF;
+    font-size: 12px;
+}
+
+.pv-history-body {
+    color: #E5E7EB;
+    line-height: 1.6;
+}
+
+.pv-history-empty {
+    color: #9CA3AF;
+    text-align: center;
+    padding: 20px;
+}

@@ -46,9 +46,15 @@ $taskStmt = $conn->prepare("
     SELECT
         t.id,
         t.project_id,
+        t.title,
+        t.description,
         t.status_id,
+        t.priority_id,
+        t.due_date,
         t.created_by,
-        p.due_date AS project_due_date
+        p.due_date AS project_due_date,
+        ta.user_id AS assignee_id,
+        au.name AS assignee_name
     FROM tasks t
 
     INNER JOIN projects p
@@ -60,6 +66,9 @@ $taskStmt = $conn->prepare("
 
     LEFT JOIN task_assignees ta
         ON ta.task_id = t.id
+
+    LEFT JOIN users au
+        ON au.id = ta.user_id
 
     WHERE
         t.id = ?
@@ -132,6 +141,63 @@ if ($assigneeId !== null && !in_array($assigneeId, $memberIds, true)) {
     exit;
 }
 
+$statusLabels = [1 => 'Completed', 2 => 'To Do', 3 => 'Pending'];
+$priorityLabels = [1 => 'High', 2 => 'Medium', 3 => 'Low'];
+$changedFields = [];
+
+if ($task['title'] !== $title) {
+    $changedFields[] = [
+        'field_name' => 'title',
+        'old_value' => $task['title'],
+        'new_value' => $title,
+    ];
+}
+
+if ((string)($task['description'] ?? '') !== $description) {
+    $changedFields[] = [
+        'field_name' => 'description',
+        'old_value' => (string)($task['description'] ?? ''),
+        'new_value' => $description,
+    ];
+}
+
+if ((int)$task['priority_id'] !== $priorityId) {
+    $changedFields[] = [
+        'field_name' => 'priority',
+        'old_value' => $priorityLabels[(int)$task['priority_id']] ?? 'Unknown',
+        'new_value' => $priorityLabels[$priorityId] ?? 'Unknown',
+    ];
+}
+
+$currentDueDate = $task['due_date'] ?: null;
+if ($currentDueDate !== $dueDate) {
+    $changedFields[] = [
+        'field_name' => 'due_date',
+        'old_value' => $currentDueDate ?? 'No due date',
+        'new_value' => $dueDate ?? 'No due date',
+    ];
+}
+
+$currentAssigneeId = isset($task['assignee_id']) ? (int)$task['assignee_id'] : null;
+if ($currentAssigneeId !== $assigneeId) {
+    $newAssigneeName = 'Unassigned';
+
+    if ($assigneeId !== null) {
+        $assigneeNameStmt = $conn->prepare("SELECT name FROM users WHERE id = ? LIMIT 1");
+        $assigneeNameStmt->bind_param("i", $assigneeId);
+        $assigneeNameStmt->execute();
+        $assigneeRow = $assigneeNameStmt->get_result()->fetch_assoc();
+        $assigneeNameStmt->close();
+        $newAssigneeName = $assigneeRow['name'] ?? 'Unassigned';
+    }
+
+    $changedFields[] = [
+        'field_name' => 'assignee',
+        'old_value' => $task['assignee_name'] ?? 'Unassigned',
+        'new_value' => $newAssigneeName,
+    ];
+}
+
 try {
     $conn->begin_transaction();
 
@@ -174,6 +240,27 @@ try {
         $history->close();
     }
 
+    if (!empty($changedFields)) {
+        $editHistory = $conn->prepare("
+            INSERT INTO task_edit_history (task_id, field_name, old_value, new_value, changed_by)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+
+        foreach ($changedFields as $change) {
+            $fieldName = $change['field_name'];
+            $oldValue = $change['old_value'];
+            $newValue = $change['new_value'];
+
+            $editHistory->bind_param("isssi", $taskId, $fieldName, $oldValue, $newValue, $userId);
+
+            if (!$editHistory->execute()) {
+                throw new Exception('Failed to record task detail history');
+            }
+        }
+
+        $editHistory->close();
+    }
+
     $detailStmt = $conn->prepare("
         SELECT t.id, t.project_id, t.title, t.description, t.status_id, t.priority_id, t.due_date,
                u.name AS creator_name,
@@ -191,9 +278,6 @@ try {
     $detailStmt->close();
 
     $conn->commit();
-
-    $statusLabels = [1 => 'Completed', 2 => 'To Do', 3 => 'Pending'];
-    $priorityLabels = [1 => 'High', 2 => 'Medium', 3 => 'Low'];
 
     echo json_encode([
         'success' => true,
