@@ -735,35 +735,26 @@ async function loadComments(taskId) {
 function renderComments(comments) {
 
     if (!comments.length) {
-
         commentsList.innerHTML =
             '<div class="pv-comments-empty">No comments yet.</div>';
-
         return;
-
     }
 
     commentsList.innerHTML = '';
 
     comments.forEach(comment => {
 
+        const isOwnComment = comment.name === currentUserName;
+
         commentsList.innerHTML += `
-            <div class="pv-comment-card">
-
+            <div class="pv-comment-card${isOwnComment ? ' pv-comment-own' : ''}">
                 <div class="pv-comment-header">
-
                     <strong>${comment.name}</strong>
-
                     <span>${comment.created_at}</span>
-
                 </div>
-
                 <div class="pv-comment-body">
-
                     ${escapeHtml(comment.comment)}
-
                 </div>
-
             </div>
         `;
 
@@ -1130,6 +1121,7 @@ async function submitComment() {
 
     /* ===== Status Update ===== */
     const csrfToken = '<?php echo $csrf_token; ?>';
+    const currentUserName = <?php echo json_encode($current_user['name'] ?? ''); ?>;
 
     window.updateStatus = function(taskId, newStatusId, btnEl) {
       btnEl.disabled = true;

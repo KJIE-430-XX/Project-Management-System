@@ -999,6 +999,10 @@ a:hover {
     margin-bottom: 8px;
 }
 
+.pv-comment-card.pv-comment-own {
+    background-color: #2A2140;
+}
+
 .pv-comment-header {
     display: flex;
     justify-content: space-between;
