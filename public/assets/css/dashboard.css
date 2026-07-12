@@ -475,6 +475,13 @@ body {
     margin-bottom: 12px;
 }
 
+.project-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 .project-card h3 {
     margin: 0;
     font-size: 18px;
@@ -583,6 +590,31 @@ body {
     border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
+}
+
+.project-notification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 1. Force a perfect square base */
+    width: 24px;
+    height: 24px;
+
+    /* 2. Remove horizontal padding so text centers perfectly */
+    padding: 0;
+
+    /* 3. 50% or 999px both work perfectly on a square to make a circle */
+    border-radius: 50%;
+
+    /* 4. Your red background (Tailwind Red 500) */
+    background: #EF4444;
+
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .project-description {

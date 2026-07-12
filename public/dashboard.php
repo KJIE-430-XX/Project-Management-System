@@ -10,7 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'db.php';
 require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/includes/project_lifecycle.php';
+require_once __DIR__ . '/includes/task_comment_notifications.php';
 $user_id = $_SESSION['user_id'];
+
+ensureTaskCommentNotificationsTable($conn);
 
 // Fetch current user details
 $user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
@@ -68,10 +71,12 @@ $stmt->close();
 // Fetch task counts and member counts for each project
 $project_stats = [];
 foreach ($projects as $project) {
+    $is_project_owner = ((int)$project['owner_id'] === $user_id);
+
     // Task count (total and completed)
-    $task_sql = "SELECT COUNT(*) as task_count, SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) as completed_count FROM tasks t WHERE t.project_id = ? AND (t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = ?))";
+    $task_sql = "SELECT COUNT(*) as task_count, SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) as completed_count FROM tasks t WHERE t.project_id = ? AND (? = 1 OR t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = ?))";
     $task_stmt = $conn->prepare($task_sql);
-    $task_stmt->bind_param("iii", $project['id'], $user_id, $user_id);
+    $task_stmt->bind_param("iiii", $project['id'], $is_project_owner, $user_id, $user_id);
     $task_stmt->execute();
     $task_result = $task_stmt->get_result();
     $task_data = $task_result->fetch_assoc();
@@ -86,10 +91,26 @@ foreach ($projects as $project) {
     $member_data = $member_result->fetch_assoc();
     $member_stmt->close();
 
+    $notification_sql = "
+        SELECT COALESCE(SUM(tcn.unread_count), 0) AS unread_task_count
+        FROM task_comment_notifications tcn
+        INNER JOIN tasks t
+            ON t.id = tcn.task_id
+        WHERE t.project_id = ?
+          AND tcn.user_id = ?
+          AND tcn.unread_count > 0
+    ";
+    $notification_stmt = $conn->prepare($notification_sql);
+    $notification_stmt->bind_param("ii", $project['id'], $user_id);
+    $notification_stmt->execute();
+    $notification_data = $notification_stmt->get_result()->fetch_assoc();
+    $notification_stmt->close();
+
     $project_stats[$project['id']] = [
         'task_count' => $task_data['task_count'],
         'completed_count' => $task_data['completed_count'] ?? 0,
-        'member_count' => $member_data['member_count']
+        'member_count' => $member_data['member_count'],
+        'unread_task_count' => (int)($notification_data['unread_task_count'] ?? 0)
     ];
 }
 
@@ -311,7 +332,12 @@ foreach ($projects as $project) {
                                             <h3 class="project-name-label" id="project-name-label-<?php echo (int)$project['id']; ?>" data-original-name="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($project['name']); ?></h3>
                                             <input type="text" class="project-name-input" id="project-name-input-<?php echo (int)$project['id']; ?>" data-project-id="<?php echo (int)$project['id']; ?>" value="<?php echo htmlspecialchars($project['name'], ENT_QUOTES, 'UTF-8'); ?>" style="display:none;">
                                         </div>
-                                        <span class="project-role"><?php echo $is_owner ? 'Owner' : 'Member'; ?></span>
+                                        <div class="project-header-meta">
+                                            <span class="project-role"><?php echo $is_owner ? 'Owner' : 'Member'; ?></span>
+                                            <?php if (($project_stats[$project['id']]['unread_task_count'] ?? 0) > 0): ?>
+                                                <span class="project-notification-badge" title="Unread task comments"><?php echo (int)$project_stats[$project['id']]['unread_task_count']; ?></span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                     <p class="project-description"><?php echo htmlspecialchars(substr($project['description'] ?? '', 0, 100)) . (strlen($project['description'] ?? '') > 100 ? '...' : ''); ?></p>
                                     <div class="project-stats">

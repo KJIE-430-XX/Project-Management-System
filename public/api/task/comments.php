@@ -10,36 +10,23 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../../db.php';
 require_once __DIR__ . '/../../csrf.php';
+require_once __DIR__ . '/../../includes/task_comment_notifications.php';
 
 $userId = (int)$_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $taskId = isset($_GET['task_id']) ? (int)$_GET['task_id'] : 0;
+    $markRead = isset($_GET['mark_read']) && $_GET['mark_read'] === '1';
 
     if ($taskId <= 0) {
         http_response_code(400);
         echo json_encode(['success'=>false,'message'=>'Invalid task']);
         exit;
     }
-    $check = $conn->prepare("
-        SELECT t.id
-        FROM tasks t
-        JOIN projects p
-            ON p.id = t.project_id
-        JOIN project_members pm
-            ON pm.project_id = p.id
-        WHERE
-            t.id = ?
-            AND pm.user_id = ?
-            AND p.deleted_at IS NULL
-        LIMIT 1
-    ");
+    $context = getTaskCommentConversationContext($conn, $taskId, $userId);
 
-    $check->bind_param("ii", $taskId, $userId);
-    $check->execute();
-
-    if ($check->get_result()->num_rows === 0) {
+    if (!$context || empty($context['is_participant'])) {
 
         http_response_code(403);
 
@@ -50,8 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         exit;
     }
-
-    $check->close();
     $stmt = $conn->prepare("
         SELECT
             tc.id,
@@ -70,10 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->execute();
 
     $comments = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    if ($markRead) {
+        markTaskCommentsAsRead($conn, $taskId, $userId);
+    }
 
     echo json_encode([
         'success' => true,
-        'comments' => $comments
+        'comments' => $comments,
+        'unread_cleared' => $markRead
     ]);
 
     exit;
@@ -112,25 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exit;
     }
+    $context = getTaskCommentConversationContext($conn, $taskId, $userId);
 
-       $check = $conn->prepare("
-        SELECT t.id
-        FROM tasks t
-        JOIN projects p
-            ON p.id = t.project_id
-        JOIN project_members pm
-            ON pm.project_id = p.id
-        WHERE
-            t.id = ?
-            AND pm.user_id = ?
-            AND p.deleted_at IS NULL
-        LIMIT 1
-    ");
-
-    $check->bind_param("ii", $taskId, $userId);
-    $check->execute();
-
-    if ($check->get_result()->num_rows === 0) {
+    if (!$context || empty($context['is_participant'])) {
 
         http_response_code(403);
 
@@ -141,9 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exit;
     }
+    $recipientUserId = resolveTaskCommentRecipientId($context, $userId);
 
-    $check->close();
-        $stmt = $conn->prepare("
+    $conn->begin_transaction();
+
+    $stmt = $conn->prepare("
         INSERT INTO task_comments
         (
             task_id,
@@ -162,6 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if (!$stmt->execute()) {
+        $stmt->close();
+        $conn->rollback();
 
         http_response_code(500);
 
@@ -172,6 +151,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exit;
     }
+    $stmt->close();
+
+    if (!recordUnreadTaskCommentNotification($conn, $taskId, $recipientUserId)) {
+        $conn->rollback();
+
+        http_response_code(500);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Unable to update notification badge'
+        ]);
+
+        exit;
+    }
+
+    $conn->commit();
 
     echo json_encode([
         'success' => true
