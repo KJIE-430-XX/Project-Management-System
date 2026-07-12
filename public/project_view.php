@@ -8,9 +8,12 @@ if (!isset($_SESSION['user_id'])) {
 include 'db.php';
 include 'csrf.php';
 require_once __DIR__ . '/includes/project_lifecycle.php';
+require_once __DIR__ . '/includes/task_comment_notifications.php';
 
 $project_id = (int)($_GET['project_id'] ?? 0);
 $user_id = $_SESSION['user_id'];
+
+ensureTaskCommentNotificationsTable($conn);
 
 // Fetch current user details
 $user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
@@ -35,9 +38,11 @@ if (!$project) {
     die("Workspace project channel not found or you do not have permission to access it.");
 }
 
+$is_project_owner = ((int)($project['owner_id'] ?? 0) === $user_id);
+
 // 🔥 FIXED: Adjusted query selection to explicitly read priority_id and status_id columns
 $t_stmt = $conn->prepare("
-  SELECT t.*, u.name AS creator_name, au.id AS assignee_id, au.name AS assignee_name 
+  SELECT t.*, u.name AS creator_name, au.id AS assignee_id, au.name AS assignee_name, COALESCE(tcn.unread_count, 0) AS unread_comment_count
     FROM tasks t 
     LEFT JOIN users u ON t.created_by = u.id
   LEFT JOIN (
@@ -50,10 +55,11 @@ $t_stmt = $conn->prepare("
     ) chosen ON chosen.task_id = ta.task_id AND chosen.user_id = ta.user_id
   ) task_assignee ON task_assignee.task_id = t.id
   LEFT JOIN users au ON au.id = task_assignee.user_id
-    WHERE t.project_id = ? AND (t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta2 WHERE ta2.task_id = t.id AND ta2.user_id = ?))
+  LEFT JOIN task_comment_notifications tcn ON tcn.task_id = t.id AND tcn.user_id = ?
+    WHERE t.project_id = ? AND (? = 1 OR t.created_by = ? OR EXISTS (SELECT 1 FROM task_assignees ta2 WHERE ta2.task_id = t.id AND ta2.user_id = ?))
     ORDER BY t.created_at DESC
 ");
-$t_stmt->bind_param("iii", $project_id, $user_id, $user_id);
+$t_stmt->bind_param("iiiii", $user_id, $project_id, $is_project_owner, $user_id, $user_id);
 $t_stmt->execute();
 $tasks = $t_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $t_stmt->close();
@@ -219,8 +225,9 @@ if (isset($_SESSION['success'])) {
                 $isTodo      = ($sid === 2);
                 $isPending   = ($sid === 3);
                 $assigneeName = $task['assignee_name'] ?? '';
+                $unreadCommentCount = (int)($task['unread_comment_count'] ?? 0);
               ?>
-                <div class="pv-task-card pv-task-openable" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>">
+                <div class="pv-task-card pv-task-openable" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>" data-unread-comment-count="<?php echo $unreadCommentCount; ?>">
                   <div class="pv-task-top">
                     <?php if ($isTodo): ?>
                       <button class="pv-circle-check" title="Mark as completed"
@@ -228,7 +235,12 @@ if (isset($_SESSION['success'])) {
                     <?php else: ?>
                       <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
                     <?php endif; ?>
-                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                    <div class="pv-task-title-wrap">
+                      <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                      <?php if ($unreadCommentCount > 0): ?>
+                        <span class="pv-comment-badge" data-comment-badge><?php echo $unreadCommentCount; ?></span>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <?php if (!empty($task['description'])): ?>
@@ -277,12 +289,18 @@ if (isset($_SESSION['success'])) {
                 $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
                 $stInfo  = $statuses[$sid]   ?? ['label'=>'Completed','class'=>'completed'];
                 $assigneeName = $task['assignee_name'] ?? '';
+                $unreadCommentCount = (int)($task['unread_comment_count'] ?? 0);
               ?>
-                <div class="pv-task-card pv-task-openable completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>">
+                <div class="pv-task-card pv-task-openable completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>" data-unread-comment-count="<?php echo $unreadCommentCount; ?>">
                   <div class="pv-task-top">
                     <button class="pv-circle-check checked" title="Move to To Do"
                             onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)"></button>
-                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                    <div class="pv-task-title-wrap">
+                      <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                      <?php if ($unreadCommentCount > 0): ?>
+                        <span class="pv-comment-badge" data-comment-badge><?php echo $unreadCommentCount; ?></span>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <?php if (!empty($task['description'])): ?>
@@ -333,8 +351,9 @@ if (isset($_SESSION['success'])) {
                 $isTodo      = ($sid === 2);
                 $isPending   = ($sid === 3);
                 $assigneeName = $task['assignee_name'] ?? '';
+                $unreadCommentCount = (int)($task['unread_comment_count'] ?? 0);
               ?>
-                <div class="pv-task-row pv-task-openable" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>">
+                <div class="pv-task-row pv-task-openable" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>" data-unread-comment-count="<?php echo $unreadCommentCount; ?>">
                   <?php if ($isTodo): ?>
                     <button class="pv-circle-check" title="Mark as completed"
                             onclick="updateStatus(<?php echo $task['id']; ?>, 1, this)"></button>
@@ -342,7 +361,12 @@ if (isset($_SESSION['success'])) {
                     <button class="pv-circle-check disabled" title="Pending – activate first" disabled></button>
                   <?php endif; ?>
 
-                  <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                  <div class="pv-task-title-wrap">
+                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                    <?php if ($unreadCommentCount > 0): ?>
+                      <span class="pv-comment-badge" data-comment-badge><?php echo $unreadCommentCount; ?></span>
+                    <?php endif; ?>
+                  </div>
 
                   <span class="pv-task-meta-cell">
                     <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>"><?php echo $stInfo['label']; ?></span>
@@ -389,12 +413,18 @@ if (isset($_SESSION['success'])) {
                 $priInfo = $priorities[$pid] ?? ['label'=>'Low','class'=>'low'];
                 $stInfo  = $statuses[$sid]   ?? ['label'=>'Completed','class'=>'completed'];
                 $assigneeName = $task['assignee_name'] ?? '';
+                $unreadCommentCount = (int)($task['unread_comment_count'] ?? 0);
               ?>
-                <div class="pv-task-row pv-task-openable completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>">
+                <div class="pv-task-row pv-task-openable completed" data-task-id="<?php echo $task['id']; ?>" data-status="<?php echo $sid; ?>" data-task-title="<?php echo htmlspecialchars($task['title'], ENT_QUOTES); ?>" data-task-description="<?php echo htmlspecialchars($task['description'] ?? '', ENT_QUOTES); ?>" data-task-due-date="<?php echo htmlspecialchars($task['due_date'] ?? '', ENT_QUOTES); ?>" data-task-priority-id="<?php echo $pid; ?>" data-task-assignee-id="<?php echo (int)($task['assignee_id'] ?? 0); ?>" data-task-assignee-name="<?php echo htmlspecialchars($assigneeName, ENT_QUOTES); ?>" data-unread-comment-count="<?php echo $unreadCommentCount; ?>">
                   <button class="pv-circle-check checked" title="Move to To Do"
                           onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)"></button>
 
-                  <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                  <div class="pv-task-title-wrap">
+                    <span class="pv-task-title"><?php echo htmlspecialchars($task['title']); ?></span>
+                    <?php if ($unreadCommentCount > 0): ?>
+                      <span class="pv-comment-badge" data-comment-badge><?php echo $unreadCommentCount; ?></span>
+                    <?php endif; ?>
+                  </div>
 
                   <span class="pv-task-meta-cell">
                     <span class="pv-badge pv-badge-<?php echo $stInfo['class']; ?>"><?php echo $stInfo['label']; ?></span>
@@ -704,6 +734,7 @@ if (isset($_SESSION['success'])) {
       taskTitleInput.focus();
       taskTitleInput.select();
 
+      clearTaskCommentNotifications(selectedTaskId);
       loadComments(selectedTaskId);
       loadHistory(selectedTaskId);
     }
@@ -940,6 +971,58 @@ async function submitComment() {
       return selectedTaskId && String(selectedTaskId) === String(taskId);
     }
 
+    function updateTaskCommentBadgeState(taskId, unreadCount) {
+      const normalizedCount = Math.max(0, parseInt(unreadCount, 10) || 0);
+      document.querySelectorAll('[data-task-id="' + taskId + '"]').forEach(node => {
+        node.setAttribute('data-unread-comment-count', String(normalizedCount));
+        syncTaskCommentBadge(node, normalizedCount);
+      });
+    }
+
+    function syncTaskCommentBadge(node, unreadCount) {
+      const titleWrap = node.querySelector('.pv-task-title-wrap');
+      if (!titleWrap) {
+        return;
+      }
+
+      let badge = titleWrap.querySelector('[data-comment-badge]');
+      if (unreadCount > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'pv-comment-badge';
+          badge.setAttribute('data-comment-badge', '');
+          titleWrap.appendChild(badge);
+        }
+        badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+      } else if (badge) {
+        badge.remove();
+      }
+    }
+
+    async function clearTaskCommentNotifications(taskId) {
+      if (!taskId) {
+        return;
+      }
+
+      try {
+        const response = await fetch('api/task/comment_notifications.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            task_id: taskId,
+            csrf_token: csrfToken
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          updateTaskCommentBadgeState(taskId, 0);
+        }
+      } catch (error) {
+        // Keep the badge if the request fails so state stays accurate.
+      }
+    }
+
     function updateTaskNodeDetails(node, taskData) {
       node.setAttribute('data-status', taskData.status_id);
       node.setAttribute('data-task-title', taskData.title || '');
@@ -948,6 +1031,11 @@ async function submitComment() {
       node.setAttribute('data-task-priority-id', taskData.priority_id || '3');
       node.setAttribute('data-task-assignee-id', taskData.assignee_id || '');
       node.setAttribute('data-task-assignee-name', taskData.assignee_name || '');
+
+      if (Object.prototype.hasOwnProperty.call(taskData, 'unread_comment_count')) {
+        node.setAttribute('data-unread-comment-count', taskData.unread_comment_count || 0);
+        syncTaskCommentBadge(node, parseInt(taskData.unread_comment_count || 0, 10));
+      }
 
       const titleEl = node.querySelector('.pv-task-title');
       if (titleEl) {
@@ -1116,7 +1204,8 @@ async function submitComment() {
         priority_id: parseInt(node.getAttribute('data-task-priority-id') || '3', 10),
         due_date: node.getAttribute('data-task-due-date') || '',
         assignee_id: node.getAttribute('data-task-assignee-id') || '',
-        assignee_name: node.getAttribute('data-task-assignee-name') || ''
+        assignee_name: node.getAttribute('data-task-assignee-name') || '',
+        unread_comment_count: parseInt(node.getAttribute('data-unread-comment-count') || '0', 10)
       };
     }
 

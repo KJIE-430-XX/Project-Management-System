@@ -41,6 +41,8 @@ if (!$conn->select_db($database)) {
 // Order matters due to foreign key constraints - drop dependent tables first
 $dropTablesSql = [
     "DROP TABLE IF EXISTS task_assignees",
+    "DROP TABLE IF EXISTS task_comment_notifications",
+    "DROP TABLE IF EXISTS task_comments",
     "DROP TABLE IF EXISTS task_edit_history",
     "DROP TABLE IF EXISTS task_status_history",
     "DROP TABLE IF EXISTS tasks",
