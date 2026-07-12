@@ -40,6 +40,137 @@ body {
     color: #6366F1;
 }
 
+/* Main wrapper needs relative positioning so the menu can float right under it */
+.dropdown-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    /* Adjust this width based on your design */
+    font-family: sans-serif;
+}
+
+/* The clickable trigger box */
+.dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #1F2937;
+    /* Matches your list background */
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #F3F4F6;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    min-height: 40px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+}
+
+.dropdown-trigger:hover {
+    border-color: #4B5563;
+}
+
+/* Fallback visual content since the HTML spans inside the trigger are commented out */
+/* .dropdown-trigger::before {
+    content: "Select Members";
+    color: #9CA3AF;
+}
+
+.dropdown-trigger::after {
+    content: "▼";
+    font-size: 10px;
+    color: #9CA3AF;
+    transition: transform 0.2s ease;
+} */
+
+/* 1. Hide the menu list by default */
+.dropdown-menu-list {
+    display: none;
+    /* Changed from display: block */
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    background-color: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    max-height: 240px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* 2. Show the menu list ONLY when the wrapper has the .open class */
+.dropdown-wrapper.open .dropdown-menu-list {
+    display: block;
+}
+
+/* 3. Optional: Rotate the arrow when open */
+.dropdown-wrapper.open .trigger-arrow {
+    transform: rotate(180deg);
+}
+
+.trigger-arrow {
+    font-size: 10px;
+    color: #9CA3AF;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+/* Custom Scrollbar for the dropdown list */
+.dropdown-menu-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-menu-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dropdown-menu-list::-webkit-scrollbar-thumb {
+    background: #4B5563;
+    border-radius: 3px;
+}
+
+.dropdown-menu-list::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+}
+
+/* Individual rows inside the dropdown */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.dropdown-item:hover {
+    background-color: #374151;
+}
+
+/* Checkbox alignment and accent tint */
+.dropdown-item-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #3B82F6;
+    /* Modern Blue tint when checked */
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Row text styling */
+.dropdown-item-text {
+    color: #E5E7EB;
+    font-size: 14px;
+}
+
 .pro-text {
     color: #A855F7;
 }
