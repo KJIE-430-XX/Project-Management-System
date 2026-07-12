@@ -128,11 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="form-group">
                     <label>Add Members</label>
                     <div class="dropdown-wrapper" id="memberDropdown">
-                        <div class="dropdown-trigger" id="memberTrigger">
-                            <!-- <span class="trigger-text" id="memberTriggerText">– Select –</span>
-                            <span class="trigger-arrow">▼</span> -->
+                        <!-- FIXED: Spans are now uncommented so JS can access them -->
+                        <div class="dropdown-trigger" id="memberTrigger" style="width: 520px;">
+                            <span class="trigger-text" id="memberTriggerText">– Select –</span>
+                            <span class="trigger-arrow">▼</span>
                         </div>
-                        <div class="dropdown-menu-list" id="memberMenuList">
+                        <div class="dropdown-menu-list" id="memberMenuList" style="width: 520px;">
                             <?php if (count($available_users) > 0): ?>
                                 <?php foreach ($available_users as $user): ?>
                                     <label class="dropdown-item" data-user-id="<?php echo $user['id']; ?>">

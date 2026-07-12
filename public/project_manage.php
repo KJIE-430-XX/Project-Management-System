@@ -152,7 +152,7 @@ $non_members_stmt->close();
     <?php if ($is_owner): ?>
     <!-- Add Member Card -->
     <div class="pm-card">
-        <h2>Invite a Team Member</h2>
+        <h2>Add a Team Member</h2>
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
             <div class="form-group custom-select-group">
