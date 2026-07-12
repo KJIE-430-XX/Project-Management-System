@@ -788,6 +788,7 @@ function renderComments(comments) {
     if (!comments.length) {
         commentsList.innerHTML =
             '<div class="pv-comments-empty">No comments yet.</div>';
+        scrollCommentsToBottom();
         return;
     }
 
@@ -809,6 +810,19 @@ function renderComments(comments) {
             </div>
         `;
 
+    });
+
+    scrollCommentsToBottom();
+
+}
+function scrollCommentsToBottom() {
+
+    if (!commentsList) {
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        commentsList.scrollTop = commentsList.scrollHeight;
     });
 
 }
