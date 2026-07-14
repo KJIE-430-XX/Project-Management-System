@@ -195,6 +195,9 @@ if (isset($_SESSION['success'])) {
       <div class="pv-tasks-toolbar">
         <h2>Tasks</h2>
         <div class="pv-view-toggle">
+          <button class="pv-view-btn" id="toggleTaskFiltersBtn" style="margin-right: 15px;">
+            <i class="fa fa-filter"></i> Filters
+          </button>
           <button class="pv-view-btn active" data-view="grid" id="btnGridView">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
             Grid
@@ -203,6 +206,49 @@ if (isset($_SESSION['success'])) {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="3" rx="1"/><rect x="1" y="7" width="14" height="3" rx="1"/><rect x="1" y="12" width="14" height="3" rx="1"/></svg>
             List
           </button>
+        </div>
+      </div>
+
+      <div class="pv-tasks-filters" id="taskFilters" style="display: none;">
+        <div class="pv-filter-group pv-search-group">
+            <i class="fa fa-search pv-filter-icon"></i>
+            <input type="text" id="taskSearchInput" class="pv-filter-input" placeholder="Search tasks...">
+        </div>
+        <div class="pv-filter-group">
+            <select id="taskAssigneeFilter" class="pv-filter-input">
+                <option value="">All Assignees</option>
+                <option value="0">Unassigned</option>
+                <?php foreach ($project_members as $member): ?>
+                    <option value="<?php echo $member['id']; ?>"><?php echo htmlspecialchars($member['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="pv-filter-group">
+            <select id="taskStatusFilter" class="pv-filter-input">
+                <option value="">All Statuses</option>
+                <?php foreach ($statuses as $id => $info): ?>
+                    <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($info['label']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="pv-filter-group">
+            <select id="taskPriorityFilter" class="pv-filter-input">
+                <option value="">All Priorities</option>
+                <?php foreach ($priorities as $id => $info): ?>
+                    <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($info['label']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="pv-filter-group pv-date-group">
+            <label for="taskDueFrom">From</label>
+            <input type="date" id="taskDueFrom" class="pv-filter-input">
+        </div>
+        <div class="pv-filter-group pv-date-group">
+            <label for="taskDueTo">To</label>
+            <input type="date" id="taskDueTo" class="pv-filter-input">
+        </div>
+        <div class="pv-filter-group">
+            <button id="clearTaskFiltersBtn" class="pv-filter-input" style="cursor: pointer; background: #334155;">Clear</button>
         </div>
       </div>
 
@@ -258,8 +304,12 @@ if (isset($_SESSION['success'])) {
                     </span>
                     <span class="pv-task-action-cell">
                       <?php if ($isPending): ?>
-                        <button class="pv-btn-activate" title="Move to To Do"
-                                onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                        <?php if ($user_id === (int)($task['assignee_id'] ?? 0)): ?>
+                          <button class="pv-btn-activate" title="Move to To Do"
+                                  onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                        <?php else: ?>
+                          <button class="pv-btn-activate" title="Only assignee can activate" disabled style="opacity: 0.5; cursor: not-allowed;">▶ Activate</button>
+                        <?php endif; ?>
                       <?php elseif ($task['due_date']): ?>
                         <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && $sid !== 1) ? 'overdue' : ''; ?>" data-task-due-date-text>
                           📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
@@ -378,7 +428,11 @@ if (isset($_SESSION['success'])) {
 
                   <span class="pv-task-meta-cell pv-task-action-cell">
                     <?php if ($isPending): ?>
-                      <button class="pv-btn-activate" onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                      <?php if ($user_id === (int)($task['assignee_id'] ?? 0)): ?>
+                        <button class="pv-btn-activate" onclick="updateStatus(<?php echo $task['id']; ?>, 2, this)">▶ Activate</button>
+                      <?php else: ?>
+                        <button class="pv-btn-activate" title="Only assignee can activate" disabled style="opacity: 0.5; cursor: not-allowed;">▶ Activate</button>
+                      <?php endif; ?>
                     <?php elseif ($task['due_date']): ?>
                       <span class="pv-due-date <?php echo (strtotime($task['due_date']) < time() && $sid !== 1) ? 'overdue' : ''; ?>">
                         📅 <?php echo date('M d', strtotime($task['due_date'])); ?>
@@ -1444,7 +1498,8 @@ async function submitComment() {
 
       sections.forEach(section => {
         if (!section.container || !section.empty) return;
-        const hasTasks = section.container.querySelector('[data-task-id]') !== null;
+        const visibleTasks = Array.from(section.container.querySelectorAll('[data-task-id]')).filter(el => el.style.display !== 'none');
+        const hasTasks = visibleTasks.length > 0;
         section.empty.classList.toggle('is-visible', !hasTasks);
       });
     }
@@ -1476,6 +1531,86 @@ async function submitComment() {
       document.querySelectorAll('[data-count="completed-grid"], [data-count="completed-list"]').forEach(el => {
         el.textContent = completedCount;
       });
+    }
+
+    function filterTasks() {
+      const searchInput = document.getElementById('taskSearchInput');
+      const assigneeFilter = document.getElementById('taskAssigneeFilter');
+      const statusFilter = document.getElementById('taskStatusFilter');
+      const priorityFilter = document.getElementById('taskPriorityFilter');
+      const dueFromInput = document.getElementById('taskDueFrom');
+      const dueToInput = document.getElementById('taskDueTo');
+
+      const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const assigneeId = assigneeFilter ? assigneeFilter.value : '';
+      const statusId = statusFilter ? statusFilter.value : '';
+      const priorityId = priorityFilter ? priorityFilter.value : '';
+      const dueFrom = dueFromInput && dueFromInput.value ? new Date(dueFromInput.value) : null;
+      const dueTo = dueToInput && dueToInput.value ? new Date(dueToInput.value) : null;
+
+      const allCards = document.querySelectorAll('.pv-task-card, .pv-task-row');
+      
+      allCards.forEach(card => {
+        const title = (card.getAttribute('data-task-title') || '').toLowerCase();
+        const aId = card.getAttribute('data-task-assignee-id') || '0';
+        const sId = card.getAttribute('data-status') || '';
+        const pId = card.getAttribute('data-task-priority-id') || '';
+        const dueDateStr = card.getAttribute('data-task-due-date') || '';
+
+        let matchSearch = searchTerm === '' || title.includes(searchTerm);
+        let matchAssignee = assigneeId === '' || aId === assigneeId;
+        let matchStatus = statusId === '' || sId === statusId;
+        let matchPriority = priorityId === '' || pId === priorityId;
+
+        let matchDate = true;
+        if (dueDateStr) {
+            const dueDate = new Date(dueDateStr);
+            if (dueFrom && dueDate < dueFrom) matchDate = false;
+            if (dueTo) {
+                const dueToDate = new Date(dueToInput.value);
+                dueToDate.setHours(23, 59, 59, 999);
+                if (dueDate > dueToDate) matchDate = false;
+            }
+        } else if (dueFrom || dueTo) {
+            matchDate = false;
+        }
+
+        if (matchSearch && matchAssignee && matchStatus && matchPriority && matchDate) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      syncEmptyStates();
+    }
+
+    const filterInputs = document.querySelectorAll('.pv-tasks-filters .pv-filter-input:not(button)');
+    filterInputs.forEach(input => {
+        input.addEventListener('input', filterTasks);
+        input.addEventListener('change', filterTasks);
+    });
+
+    const toggleFiltersBtn = document.getElementById('toggleTaskFiltersBtn');
+    const taskFilters = document.getElementById('taskFilters');
+    const clearFiltersBtn = document.getElementById('clearTaskFiltersBtn');
+
+    if (toggleFiltersBtn && taskFilters) {
+        toggleFiltersBtn.addEventListener('click', () => {
+            taskFilters.style.display = taskFilters.style.display === 'none' ? 'flex' : 'none';
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            document.getElementById('taskSearchInput').value = '';
+            document.getElementById('taskAssigneeFilter').value = '';
+            document.getElementById('taskStatusFilter').value = '';
+            document.getElementById('taskPriorityFilter').value = '';
+            document.getElementById('taskDueFrom').value = '';
+            document.getElementById('taskDueTo').value = '';
+            filterTasks();
+        });
     }
 
     syncEmptyStates();

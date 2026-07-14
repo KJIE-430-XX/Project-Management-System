@@ -150,6 +150,7 @@ function lineClass(int $afterStep, int $current): string {
     <meta name="description" content="Reset your ProManage account password securely.">
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         .auth-container {
             max-width: 420px;
@@ -377,7 +378,12 @@ function lineClass(int $afterStep, int $current): string {
                             required
                             autofocus
                         >
-                        <button type="button" class="pw-eye-btn" onclick="togglePw('new_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                        <button type="button"
+                                class="pw-eye-btn"
+                                onclick="togglePw('new_password', this)"
+                                aria-label="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
                     </div>
                     <span class="hint">Minimum 6 characters.</span>
                 </div>
@@ -392,7 +398,12 @@ function lineClass(int $afterStep, int $current): string {
                             placeholder="Re-enter your new password"
                             required
                         >
-                        <button type="button" class="pw-eye-btn" onclick="togglePw('confirm_password', this)" tabindex="-1" aria-label="Toggle password visibility">&#128065;</button>
+                        <button type="button"
+                                class="pw-eye-btn"
+                                onclick="togglePw('confirm_password', this)"
+                                aria-label="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
                     </div>
                     <span class="hint" id="match-hint" style="display:none; color:#F87171;">Passwords do not match.</span>
                 </div>
@@ -467,9 +478,18 @@ function lineClass(int $afterStep, int $current): string {
     // ── Password eye-toggle ────────────────────────
     function togglePw(id, btn) {
         const input = document.getElementById(id);
-        const isHidden = input.type === 'password';
-        input.type = isHidden ? 'text' : 'password';
-        btn.innerHTML = isHidden ? '&#128683;' : '&#128065;';
+
+        if (!input) return;
+
+        const icon = btn.querySelector("i");
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
     }
     </script>
 </body>

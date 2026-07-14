@@ -855,7 +855,7 @@ body {
 }
 
 .project-edit-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.7);
+    filter: invert(1);
     cursor: pointer;
 }
 
@@ -912,4 +912,68 @@ body {
 
 .user-dropdown-menu a:hover {
     background-color: #374151;
+}
+
+/* Dashboard Filters */
+.dashboard-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #161B26;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-group {
+    flex-grow: 1;
+    min-width: 200px;
+    position: relative;
+}
+
+.search-group .filter-icon {
+    position: absolute;
+    left: 12px;
+    color: #94A3B8;
+}
+
+.search-group .filter-input {
+    padding-left: 35px;
+    width: 100%;
+}
+
+.filter-label {
+    font-size: 13px;
+    color: #94A3B8;
+    white-space: nowrap;
+}
+
+.filter-input {
+    background: #0B0F19;
+    border: 1px solid #334155;
+    color: #F8FAFC;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.filter-input:focus {
+    border-color: #A855F7;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+#projectDueTo::-webkit-calendar-picker-indicator,
+#projectDueFrom::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
 }

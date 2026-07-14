@@ -312,9 +312,30 @@ foreach ($projects as $project) {
                         </div>
                         <div id="workspace-header-progress-text" class="workspace-header-progress-text"></div>
                     </div>
+                    <div class="main-header-right" style="margin-left: auto;">
+                        <button id="toggleDashboardFiltersBtn" class="btn filter-input" style="cursor: pointer;"><i class="fa fa-filter"></i> Filters</button>
+                    </div>
                 </div>
 
                 <div class="project-dashboard">
+                    <div class="dashboard-filters" id="dashboardFilters" style="display: none;">
+                        <div class="filter-group search-group">
+                            <i class="fa fa-search filter-icon"></i>
+                            <input type="text" id="projectSearchInput" class="filter-input" placeholder="Search projects by title or description...">
+                        </div>
+                        <div class="filter-group date-group">
+                            <label class="filter-label" for="projectDueFrom">Due From</label>
+                            <input type="date" id="projectDueFrom" class="filter-input">
+                        </div>
+                        <div class="filter-group date-group">
+                            <label class="filter-label" for="projectDueTo">Due To</label>
+                            <input type="date" id="projectDueTo" class="filter-input">
+                        </div>
+                        <div class="filter-group">
+                            <button id="clearDashboardFiltersBtn" class="btn filter-input" style="cursor: pointer;">Clear</button>
+                        </div>
+                    </div>
+
                     <?php if (count($projects) > 0): ?>
                         <div class="projects-grid" id="projects-grid">
                             <?php foreach ($projects as $project): ?>
