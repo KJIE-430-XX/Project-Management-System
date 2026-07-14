@@ -46,6 +46,25 @@ h1 {
     margin-bottom: 15px;
 }
 
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+
+.password-eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+}
+
 label {
     display: block;
     margin-bottom: 5px;
