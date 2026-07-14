@@ -167,6 +167,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="form-group">
+                    <label for="due_date">Due Date</label>
+                    <input type="date" id="due_date" name="due_date" value="<?php echo isset($_POST['due_date']) ? htmlspecialchars($_POST['due_date']) : ''; ?>">
+                </div>
+
+                <div class="form-group">
                     <label>Add Members</label>
                     <div class="dropdown-wrapper" id="memberDropdown">
                         <!-- FIXED: Spans are now uncommented so JS can access them -->
