@@ -19,6 +19,20 @@ $users_result->execute();
 $available_users = $users_result->get_result()->fetch_all(MYSQLI_ASSOC);
 $users_result->close();
 
+// Fetch workspaces owned by or available to the current user
+$workspace_stmt = $conn->prepare(
+    "SELECT DISTINCT w.id, w.name
+     FROM workspaces w
+     LEFT JOIN projects p ON p.workspace_id = w.id
+     LEFT JOIN project_members pm ON p.id = pm.project_id
+     WHERE w.user_id = ? OR pm.user_id = ?
+     ORDER BY w.name ASC"
+);
+$workspace_stmt->bind_param("ii", $current_user_id, $current_user_id);
+$workspace_stmt->execute();
+$available_workspaces = $workspace_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$workspace_stmt->close();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!validateCSRFToken($csrf_token)) {
@@ -28,17 +42,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = trim($_POST['description']);
         // 🔥 NEW: Capture project due date from the form
         $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
+        $workspace_id = isset($_POST['workspace_id']) && $_POST['workspace_id'] !== '' ? intval($_POST['workspace_id']) : null;
         $user_id = $_SESSION['user_id'];
 
         if (empty($name)) {
             $error = "Project name is required.";
-        } else {
+        } elseif ($workspace_id !== null) {
+            $valid_workspace_stmt = $conn->prepare(
+                "SELECT 1
+                 FROM workspaces w
+                 WHERE w.id = ? AND (
+                     w.user_id = ? OR EXISTS (
+                         SELECT 1 FROM project_members pm
+                         INNER JOIN projects p ON pm.project_id = p.id
+                         WHERE pm.user_id = ? AND p.workspace_id = w.id
+                     )
+                 )"
+            );
+            $valid_workspace_stmt->bind_param("iii", $workspace_id, $user_id, $user_id);
+            $valid_workspace_stmt->execute();
+            $valid_workspace_result = $valid_workspace_stmt->get_result();
+            if ($valid_workspace_result->num_rows === 0) {
+                $error = "Selected folder is not available.";
+            }
+            $valid_workspace_stmt->close();
+        }
+
+        if (empty($error)) {
             // 🔥 UPDATED: Wrap project and owner membership in a transaction
             try {
                 $conn->begin_transaction();
                 
-                $stmt = $conn->prepare("INSERT INTO projects (name, description, owner_id, due_date) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssis", $name, $description, $user_id, $due_date);
+                $stmt = $conn->prepare("INSERT INTO projects (name, description, owner_id, due_date, workspace_id) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssisi", $name, $description, $user_id, $due_date, $workspace_id);
                 
                 if (!$stmt->execute()) {
                     throw new Exception("Error creating project: " . $stmt->error);
@@ -121,8 +157,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="form-group">
-                    <label for="due_date">Due Date</label>
-                    <input type="date" id="due_date" name="due_date" value="<?php echo isset($_POST['due_date']) ? htmlspecialchars($_POST['due_date']) : ''; ?>">
+                    <label for="workspace_id">Select Folder</label>
+                    <select id="workspace_id" name="workspace_id">
+                        <option value=""<?php echo (!isset($_POST['workspace_id']) || $_POST['workspace_id'] === '') ? ' selected' : ''; ?>>Uncategorized</option>
+                        <?php foreach ($available_workspaces as $workspace): ?>
+                            <option value="<?php echo $workspace['id']; ?>"<?php echo (isset($_POST['workspace_id']) && (string)$workspace['id'] === (string)$_POST['workspace_id']) ? ' selected' : ''; ?>><?php echo htmlspecialchars($workspace['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="form-group">
