@@ -242,7 +242,8 @@ if ($conn === null) {
             color: #94A3B8;
             font-size: 14px;
         }
-        .pw-modal input[type=password] {
+        .pw-modal input[type=password],
+        .pw-modal input[type=text] {
             width: 100%;
             padding: 10px 12px;
             border-radius: 8px;
@@ -340,7 +341,28 @@ if ($conn === null) {
                         <p>You're changing your email or username. Please enter your current password to continue.</p>
                         <div style="position: relative;">
                             <input type="password" id="pwModalInput" placeholder="Current password" autocomplete="current-password" style="padding-right: 40px;">
-                            <button type="button" onclick="togglePwModal()" tabindex="-1" aria-label="Toggle password visibility" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748B;padding:0;font-size:16px;line-height:1;" id="pwModalEyeBtn">&#128065;</button>
+                            <button type="button" onclick="togglePwModal()" tabindex="-1"
+                                    aria-label="Toggle password visibility"
+                                    style="position:absolute;right:10px;top:50%;
+                                    transform:translateY(-50%);
+                                    background:none;
+                                    border:none;
+                                    cursor:pointer;
+                                    color:#64748B;
+                                    padding:0;"
+                                    id="pwModalEyeBtn">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                    viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+
+                            </button>
                         </div>
                         <div class="pw-modal-error" id="pwModalError"></div>
                         <div class="pw-modal-actions">
@@ -421,10 +443,32 @@ if ($conn === null) {
 
                 function togglePwModal() {
                     const input = document.getElementById('pwModalInput');
-                    const btn   = document.getElementById('pwModalEyeBtn');
+                    const btn = document.getElementById('pwModalEyeBtn');
+
                     const isHidden = input.type === 'password';
+
                     input.type = isHidden ? 'text' : 'password';
-                    btn.innerHTML = isHidden ? '&#128683;' : '&#128065;';
+
+                    btn.innerHTML = isHidden
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20
+                            c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94
+                            M9.9 4.24A9.12 9.12 0 0 1 12 4
+                            c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19">
+                            </path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>`
+                        : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8
+                            -4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>`;
                 }
                 </script>
             <?php endif; ?>
