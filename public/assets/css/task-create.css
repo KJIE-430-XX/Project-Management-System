@@ -85,6 +85,11 @@ body {
     transition: transform 0.2s ease;
 } */
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
 /* 1. Hide the menu list by default */
 .dropdown-menu-list {
     display: none;

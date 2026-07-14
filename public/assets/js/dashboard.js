@@ -7,6 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize User Dropdown
     initUserDropdown();
+
+    // Initialize Filters
+    const searchInput = document.getElementById('projectSearchInput');
+    const dueFrom = document.getElementById('projectDueFrom');
+    const dueTo = document.getElementById('projectDueTo');
+
+    if (searchInput) searchInput.addEventListener('input', filterProjects);
+    if (dueFrom) dueFrom.addEventListener('change', filterProjects);
+    if (dueTo) dueTo.addEventListener('change', filterProjects);
+
+    const toggleFiltersBtn = document.getElementById('toggleDashboardFiltersBtn');
+    const dashboardFilters = document.getElementById('dashboardFilters');
+    const clearFiltersBtn = document.getElementById('clearDashboardFiltersBtn');
+
+    if (toggleFiltersBtn && dashboardFilters) {
+        toggleFiltersBtn.addEventListener('click', () => {
+            dashboardFilters.style.display = dashboardFilters.style.display === 'none' ? 'flex' : 'none';
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (dueFrom) dueFrom.value = '';
+            if (dueTo) dueTo.value = '';
+            filterProjects();
+        });
+    }
 });
 
 let currentWorkspaceId = 'null';
@@ -56,15 +84,41 @@ function selectWorkspace(workspaceId) {
 
 function filterProjects() {
     const projects = document.querySelectorAll('.project-card');
+    
+    const searchInput = document.getElementById('projectSearchInput');
+    const dueFromInput = document.getElementById('projectDueFrom');
+    const dueToInput = document.getElementById('projectDueTo');
+    
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const dueFrom = dueFromInput && dueFromInput.value ? new Date(dueFromInput.value) : null;
+    const dueTo = dueToInput && dueToInput.value ? new Date(dueToInput.value) : null;
+    
     let visibleCount = 0;
 
     projects.forEach(project => {
         const projectWorkspaceId = project.getAttribute('data-workspace-id');
+        const name = (project.getAttribute('data-name') || '').toLowerCase();
+        const description = (project.getAttribute('data-description') || '').toLowerCase();
+        const dueDateStr = project.getAttribute('data-due-date') || '';
+        
+        let matchWorkspace = (currentWorkspaceId === 'all') || (String(projectWorkspaceId) === String(currentWorkspaceId));
+        let matchSearch = searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm);
+        
+        let matchDate = true;
+        if (dueDateStr) {
+            const dueDate = new Date(dueDateStr);
+            if (dueFrom && dueDate < dueFrom) matchDate = false;
+            // Set dueTo time to end of day to include the date selected
+            if (dueTo) {
+                const dueToDate = new Date(dueToInput.value);
+                dueToDate.setHours(23, 59, 59, 999);
+                if (dueDate > dueToDate) matchDate = false;
+            }
+        } else if (dueFrom || dueTo) {
+            matchDate = false; // If a date filter is applied but project has no date, hide it
+        }
 
-        if (currentWorkspaceId === 'all') {
-            project.style.display = 'flex';
-            visibleCount++;
-        } else if (String(projectWorkspaceId) === String(currentWorkspaceId)) {
+        if (matchWorkspace && matchSearch && matchDate) {
             project.style.display = 'flex';
             visibleCount++;
         } else {
