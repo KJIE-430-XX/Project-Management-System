@@ -90,6 +90,7 @@ a:hover {
 
 .btn-primary:hover {
     background-color: #C084FC;
+    color: white;
 }
 
 .btn-primary:active {
